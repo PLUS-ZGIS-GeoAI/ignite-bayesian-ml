@@ -51,7 +51,7 @@ if __name__ == "__main__":
                                  sw_corner_wgs84=(8.4445, 45.7727),
                                  num_grid_points_x=701,
                                  num_grid_points_y=401,
-                                 output_path="INCA_ref_raster_since_2013")
+                                 output_path=r"C:\Users\David\Documents\ZGIS\Nextcloud_MyFiles\Projects\IGNITE\data\raw\GEOSPHERE_INCA_GRID\INCA_ref_raster_since_2013.tif")
 
     # create INCA reference raster before 2013
     x_res, y_res = create_raster(target_projection='EPSG:31287',
@@ -59,4 +59,12 @@ if __name__ == "__main__":
                                  sw_corner_wgs84=(17.2142, 46.0828),
                                  num_grid_points_x=601,
                                  num_grid_points_y=351,
-                                 output_path="INCA_ref_raster_before_2013")
+                                 output_path=r"C:\Users\David\Documents\ZGIS\Nextcloud_MyFiles\Projects\IGNITE\data\raw\GEOSPHERE_INCA_GRID\INCA_ref_raster_before_2013.tif")
+
+    # create INCA reference raster with 100m resolution
+    x_res, y_res = create_raster(target_projection='EPSG:31287',
+                                 ne_corner_wgs84=(17.7438, 49.3973),
+                                 sw_corner_wgs84=(8.4445, 45.7727),
+                                 num_grid_points_x=7010,
+                                 num_grid_points_y=4010,
+                                 output_path=r"C:\Users\David\Documents\ZGIS\Nextcloud_MyFiles\Projects\IGNITE\data\raw\GEOSPHERE_INCA_GRID\INCA_ref_raster_since_2013_100m.tif")

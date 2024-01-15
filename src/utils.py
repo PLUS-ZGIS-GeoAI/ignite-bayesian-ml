@@ -81,3 +81,34 @@ def sample_random_date_given_year_and_month(month: int, year: int, random_state:
 
     # return a formatted date
     return f"{month:02}/{day:02}/{year}"
+
+
+def get_raster_info(raster_path: str) -> tuple:
+    """get information of raster"""
+
+    raster_ds = gdal.Open(raster_path)
+    spatial_ref = raster_ds.GetProjection()
+    geo_transform = raster_ds.GetGeoTransform()
+    resolution = (geo_transform[1], geo_transform[5])
+    extent = (geo_transform[0], geo_transform[3], geo_transform[0] + geo_transform[1] *
+              raster_ds.RasterXSize, geo_transform[3] + geo_transform[5] * raster_ds.RasterYSize)
+    raster_ds = None
+    return spatial_ref, resolution, extent
+
+
+def align_and_resample(input_raster: str, output_raster: str, reference_raster: str, resample_alg: str) -> None:
+    """aligns and resamples input raster to reference raster"""
+
+    # Get specifications from reference raster
+    target_srs, (x_res, y_res), (xmin, ymin, xmax,
+                                 ymax) = get_raster_info(reference_raster)
+
+    # Open input raster
+    input_ds = gdal.Open(input_raster)
+
+    # Perform warp operation using reference raster specifications
+    gdal.Warp(output_raster, input_ds, dstSRS=target_srs, xRes=x_res, yRes=y_res,
+              outputBounds=(xmin, ymin, xmax, ymax), resampleAlg=resample_alg)
+
+    # Close datasets
+    input_ds = None
