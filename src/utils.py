@@ -1,13 +1,13 @@
 from osgeo import gdal
 import numpy as np
-import pandas as pd
 import geopandas as gpd
 import random
 from shapely.geometry import Point
 from scipy import stats
+import calendar
 
 
-def sample_points(raster_path: str, num_samples: int) -> gpd.GeoDataFrame:
+def sample_points(raster_path: str, num_samples: int, random_seed: int) -> gpd.GeoDataFrame:
     """
     Sample random points inside of raster. Only from locations where raster has data points are sampled.
     The function returns geodataframe of sampled points with same crs as raster
@@ -16,9 +16,7 @@ def sample_points(raster_path: str, num_samples: int) -> gpd.GeoDataFrame:
     # Open the raster using GDAL
     ds = gdal.Open(raster_path)
 
-    # Get the raster's dimensions
-    x_size = ds.RasterXSize
-    y_size = ds.RasterYSize
+    # Get the rasters reference system
     crs = ds.GetProjection()
 
     # Get the raster's geotransform information
@@ -39,6 +37,7 @@ def sample_points(raster_path: str, num_samples: int) -> gpd.GeoDataFrame:
     non_no_data_indices = np.argwhere((data != 0) & (data != no_data_value))
 
     # Choose `num_samples` random indices from the non-zero and non-NoData indices
+    random.seed(random_seed)
     sample_indices = random.sample(list(non_no_data_indices), num_samples)
 
     # Convert the sample indices to x, y coordinates
@@ -54,14 +53,31 @@ def sample_points(raster_path: str, num_samples: int) -> gpd.GeoDataFrame:
     return gdf
 
 
-def sample_categories(categories, probabilities, num_samples: int):
+def sample_categories(categories, probabilities, num_samples: int, random_seed: int):
     """
     Sample a given number of categories based on a discrete distribution specified by "probabilities"
     """
 
     # Create a categorical distribution using the categories and their corresponding probabilities
-    cat_dist = stats.rv_discrete(values=(categories, probabilities))
+    cat_dist = stats.rv_discrete(
+        values=(categories, probabilities), seed=random_seed)
 
     # Use the categorical distribution to sample `num_samples` categories
     samples = cat_dist.rvs(size=num_samples)
     return samples
+
+
+def sample_random_date_given_year_and_month(month: int, year: int, random_state: int) -> str:
+    """generate a random date given a year and a month"""
+
+    # set the random state
+    np.random.seed(random_state)
+
+    # get the number of days a specific month has
+    num_days = calendar.monthrange(year, month)[1]
+
+    # randomly choose one of the days
+    day = np.random.randint(1, num_days)
+
+    # return a formatted date
+    return f"{month:02}/{day:02}/{year}"
