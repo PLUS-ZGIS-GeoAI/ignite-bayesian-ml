@@ -1,5 +1,5 @@
 import os
-from config import base_path
+from config.config import base_path
 from src.gdal_wrapper import gdal_align_and_resample
 
 
