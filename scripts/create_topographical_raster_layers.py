@@ -1,14 +1,11 @@
 import os
-from config.config import base_path
+from config.config import base_path, path_to_ref_raster
 from src.gdal_wrapper import gdal_align_and_resample
 
 
 if __name__ == "__main__":
 
     resample_alg = "Average"
-
-    path_to_ref_raster = os.path.join(
-        base_path, "data/processed/reference_grid/INCA_ref_raster_since_2013_100m.tif")
 
     path_to_elevation = os.path.join(
         base_path, "data/raw/OGD_Topographie/dhm_at_lamb_10m_2018.tif")

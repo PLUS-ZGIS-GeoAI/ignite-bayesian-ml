@@ -1,5 +1,5 @@
 import os
-from config.config import base_path
+from config.config import base_path, path_to_ref_raster
 from src.gdal_wrapper import gdal_align_and_resample, gdal_rasterize
 
 
@@ -9,10 +9,8 @@ if __name__ == "__main__":
     resample_algorithm = "Average"
 
     rel_path_to_pop_vector_layer = "data/processed/population_data/population_data_all_years_vector/geostat_pop.shp"
-    rel_path_to_ref_raster = "data/processed/reference_grid/INCA_ref_raster_since_2013_100m.tif"
     path_to_pop_vector_layer = os.path.join(
         base_path, rel_path_to_pop_vector_layer)
-    path_to_ref_raster = os.path.join(base_path, rel_path_to_ref_raster)
 
     for year in years:
         rel_path_to_pop_raster_layer = f"data/processed/population_data/geostat_{year}.tif"
