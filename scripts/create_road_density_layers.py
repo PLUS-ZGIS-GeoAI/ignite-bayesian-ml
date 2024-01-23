@@ -14,19 +14,16 @@ if __name__ == "__main__":
     PATH_TO_ROADS = os.path.join(
         BASE_PATH, "data/raw/OSM_austria/austria-latest-free/gis_osm_roads_free_1.shp")
     PATH_TO_RAILWAYS = os.path.join(
-        BASE_PATH, "data/raw/OSM_austria/austria-latest-free/gis_osm_roads_free_1.shp")
+        BASE_PATH, "data/raw/OSM_austria/austria-latest-free/gis_osm_railways_free_1.shp")
     PATH_TO_REFERENCE_GRID_VECTOR = os.path.join(
         BASE_PATH, "data/processed/reference_grid/inca_reference_grid_100m_vector_AUT/inca_ref_grid_100m_vector_AUT.shp")
 
-    # TODO delete when debugged
-    BASE_PATH = "C:/Users/David/Documents/ZGIS/databox/"
-
     ROAD_TYPES = [
-        ("rails", "railway_density_layer", "railway_density_layer_resampled"),
-        # (["track", "track_grade1", "track_grade2", "track_grade3", "track_grade4",
-        #  "track_grade5"], "forestroad_density_layer", "forestroad_density_layer_resampled"),
-        # ("path", "hikingtrail_density_layer",
-        #  "hikingtrail_density_layer_resampled")
+        ("rail", "railway_density_layer", "railway_density_layer_resampled"),
+        (["track", "track_grade1", "track_grade2", "track_grade3", "track_grade4",
+         "track_grade5"], "forestroad_density_layer", "forestroad_density_layer_resampled"),
+        ("path", "hikingtrail_density_layer",
+         "hikingtrail_density_layer_resampled")
     ]
 
     # Open specifications of reference raster
@@ -39,8 +36,13 @@ if __name__ == "__main__":
 
     # Iterate over road types
     for road_type, layer_name, resampled_suffix in ROAD_TYPES:
-        # Read in and prepare road data
-        road_gdf = gpd.read_file(PATH_TO_ROADS)
+
+        if road_type == "rail":
+            # Read in and prepare road data
+            road_gdf = gpd.read_file(PATH_TO_RAILWAYS)
+        else:
+            road_gdf = gpd.read_file(PATH_TO_ROADS)
+
         road_gdf = road_gdf.to_crs(PROJECT_EPSG)
 
         if isinstance(road_type, list):
