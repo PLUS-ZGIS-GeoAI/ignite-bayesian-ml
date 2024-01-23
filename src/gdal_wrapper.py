@@ -1,6 +1,8 @@
 from osgeo import gdal
 import subprocess
 
+# TODO add docstring to each function
+
 
 def gdal_get_raster_info(raster_path: str) -> tuple:
     """
@@ -29,8 +31,7 @@ def gdal_align_and_resample(input_raster: str, output_raster: str, reference_ras
     input_ds = None
 
 
-def gdal_rasterize(input_path: str, output_path: str, layer_name: str, col_name: str,
-                   resolution: str, no_data_value: str, extent: tuple, value_type: str):
+def gdal_rasterize(input_path: str, output_path: str, layer_name: str, col_name: str, resolution: str, shape: tuple, no_data_value: str, extent: tuple, value_type: str, pixel_mode: bool = False):
     """
     Create a raster from a vector file using GDAL.
     """
@@ -38,12 +39,24 @@ def gdal_rasterize(input_path: str, output_path: str, layer_name: str, col_name:
         "gdal_rasterize",
         "-l", layer_name,
         "-a", col_name,
-        "-tr", resolution, resolution,
+    ]
+
+    if pixel_mode:
+        command.extend([
+            "-ts", str(shape[0]), str(shape[1]),
+        ])
+    else:
+        command.extend([
+            "-tr", resolution, resolution,
+        ])
+
+    command.extend([
         "-a_nodata", no_data_value,
-        "-te", extent[0], extent[1], extent[2], extent[3],
+        "-te", str(extent[0]), str(extent[1]), str(extent[2]), str(extent[3]),
         "-ot", value_type,
         "-of", "GTiff",
         input_path,
         output_path
-    ]
+    ])
+
     subprocess.run(command)

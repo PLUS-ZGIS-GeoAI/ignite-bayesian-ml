@@ -20,8 +20,11 @@ if __name__ == "__main__":
         path_to_pop_raster_layer_resampled = os.path.join(
             BASE_PATH, rel_path_to_pop_raster_layer_resampled)
 
-        gdal_rasterize(path_to_pop_vector_layer, path_to_pop_raster_layer,
-                       "geostat_pop", f"POP_{year}", "1000.0", "-1.0", ("4287000.0", "2596000.0", "4853000.0", "2890000.0"), "Float32")
+        # TODO what to do with this extent? Store in config?
+        gdal_rasterize(
+            path_to_pop_vector_layer, path_to_pop_raster_layer,
+            "geostat_pop", f"POP_{year}", "1000.0", None,  ("4287000.0", "2596000.0", "4853000.0", "2890000.0"), "Float32", pixel_mode=False
+        )
 
         gdal_align_and_resample(path_to_pop_raster_layer,
                                 path_to_pop_raster_layer_resampled, PATH_TO_REF_RASTER, resample_algorithm)
