@@ -1,5 +1,6 @@
-from osgeo import gdal
+from osgeo import gdal, osr
 import subprocess
+import numpy as np
 
 # TODO add docstring to each function
 
@@ -18,6 +19,7 @@ def gdal_get_raster_info(raster_path: str) -> tuple:
     return spatial_ref, resolution, extent
 
 
+# TODO no data value is not working as expected (e.g. for FFMC layer creation)
 def gdal_align_and_resample(input_raster: str, output_raster: str, reference_raster: str, resample_alg: str) -> None:
     """
     Aligns and resamples the input raster to match the specifications of the reference raster.
@@ -27,7 +29,7 @@ def gdal_align_and_resample(input_raster: str, output_raster: str, reference_ras
 
     input_ds = gdal.Open(input_raster)
     gdal.Warp(output_raster, input_ds, dstSRS=target_srs, xRes=x_res, yRes=y_res,
-              outputBounds=(xmin, ymin, xmax, ymax), resampleAlg=resample_alg)
+              outputBounds=(xmin, ymin, xmax, ymax), resampleAlg=resample_alg, dstNodata=None)
     input_ds = None
 
 
@@ -60,3 +62,24 @@ def gdal_rasterize(input_path: str, output_path: str, layer_name: str, col_name:
     ])
 
     subprocess.run(command)
+
+
+def gdal_create_geotiff_from_arrays(data: np.array, lon: np.array, lat: np.array, path_to_output: str):
+
+    driver = gdal.GetDriverByName("GTiff")
+    out_dataset = driver.Create(
+        path_to_output, data.shape[1], data.shape[0], 1, gdal.GDT_Float32)
+
+    width = lon[0][1] - lon[0][0]
+    height = lat[:, 0][1] - lat[:, 0][0]
+
+    out_dataset.SetGeoTransform((lon.min(), width, 0, lat.min(), 0, height))
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    out_dataset.SetProjection(srs.ExportToWkt())
+
+    out_band = out_dataset.GetRasterBand(1)
+    out_band.WriteArray(data)
+
+    out_band.FlushCache()
+    out_dataset.FlushCache()

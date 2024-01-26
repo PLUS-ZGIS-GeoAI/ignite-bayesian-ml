@@ -1,68 +1,56 @@
-from datetime import datetime, timedelta
-import pandas as pd
-from datetime import timedelta
-from src.inca_data_extraction import get_inca_data, extract_inca_data, calculate_wind_speed
-from src.fwi_system_calculator import FWISystemCalculator
-
-
-# TODO retrieving inca values does not work yet
-# TODO delete calculate_ffmc_from_inca_data, when script is running
-
-
-def calculate_ffmc(row):
-    """calculate Fine Fuel Moisture Code; function to be applied to dataframe"""
-    calculator = FWISystemCalculator(
-        row['T2M'], row['RH2M'], row['wind_speed'], row['RR'])
-    # TODO 85 is ffmc starting value - should be given as input to function
-    ffmc = calculator.ffmc_calc(85)
-    return pd.Series({'FFMC': ffmc})
-
-
-def calculate_24_hours_sooner(date_str):
-    """produce a date in format YYYY-MM-DDTHH:MM but 24 hours sooner"""
-    datetime_of_interest = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
-    delta_24_hours = timedelta(hours=24)
-    result_datetime = datetime_of_interest - delta_24_hours
-    result_formatted = result_datetime.strftime('%Y-%m-%dT%H:%M')
-    return result_formatted
+import os
+import netCDF4 as nc
+import numpy as np
+from config.config import PATH_TO_REF_RASTER
+from src.inca_data_extraction import get_geosphere_data, calculate_wind_speed
+from src.fwi_system_calculator import calculate_ffmc
+from src.gdal_wrapper import gdal_align_and_resample, gdal_create_geotiff_from_arrays
 
 
 if __name__ == "__main__":
 
-    date_of_interest = '2021-08-02T12:00'
-    date_of_interest_24h_sooner = calculate_24_hours_sooner(date_of_interest)
-    output_format = "geosjon"
-    bounding_box = [47.45, 14.05, 47.50, 14.10]
+    resample_algo = "Nearest Neighbor"
+    # TODO in production we need to implement functionality which checks if ffmc layer from previous day is available, otherwise initial value is used.
+    ffmc_initial_value = 85
+    parameters_rainfall = ["RR"]
+    parameters_other = ['T2M', 'UU', 'VV', 'RH2M']
+    # TODO actually only specify date of interest (date with 24h before for precipitation should be calculated automatically)
+    start_date = '2024-01-25T12:00'
+    end_date = '2024-01-26T12:00'
+    bbox = '47.421389,12.73,48.776944,15.036111'
+    output_format = 'netcdf'
 
-    # request inca data from Geosphere Data API
-    t2m_data = get_inca_data(parameter="T2M", start_date=date_of_interest,
-                             end_date=date_of_interest, bbox=bounding_box, output_format=output_format)
-    rr_data = get_inca_data(parameter="RR", start_date=date_of_interest_24h_sooner,
-                            end_date=date_of_interest, bbox=bounding_box, output_format=output_format)
-    rhum_data = get_inca_data(parameter="RH2M", start_date=date_of_interest,
-                              end_date=date_of_interest, bbox=bounding_box, output_format=output_format)
-    uu_data = get_inca_data(parameter="UU", start_date=date_of_interest,
-                            end_date=date_of_interest, bbox=bounding_box, output_format=output_format)
-    vv_data = get_inca_data(parameter="VV", start_date=date_of_interest,
-                            end_date=date_of_interest, bbox=bounding_box, output_format=output_format)
+    BASE_PATH = r"C:/Users/David/Documents/ZGIS/inca_file_store"
 
-    t2m_data_extracted = extract_inca_data(t2m_data, "T2M").loc[:, ["T2M"]]
-    rr_data_extracted = extract_inca_data(rr_data, "RR").loc[:, ["RR"]]
-    rhum_data_extracted = extract_inca_data(rhum_data, "RH2M").loc[:, ["RH2M"]]
-    uu_data_extracted = extract_inca_data(uu_data, "UU").loc[:, ["UU"]]
-    vv_data_extracted = extract_inca_data(vv_data, "VV")
+    # TODO add date to filenames
+    PATH_TO_FFMC_LAYER = os.path.join(BASE_PATH, "ffmc.tiff")
+    PAHT_TO_FFMC_LAYER_RESAMPLED = os.path.join(
+        BASE_PATH, "ffmc_resampled.tiff")
 
-    dfs_to_merge = [t2m_data_extracted, rr_data_extracted,
-                    rhum_data_extracted, uu_data_extracted, vv_data_extracted]
-    df = pd.concat(dfs_to_merge, axis=1)
-    df["wind_speed"] = df.apply(
-        lambda x: calculate_wind_speed(x.UU, x.VV), axis=1)
+    path_to_rain_netcdf = get_geosphere_data(
+        parameters_rainfall, start_date, end_date, bbox, BASE_PATH)
+    path_to_inca_other_netcdf = get_geosphere_data(
+        parameters_other, start_date, start_date, bbox, BASE_PATH)
 
-    # TODO variable names (result_df, df_result) here are weird; change
-    # Assume df is your DataFrame with columns 'temp', 'rhum', 'wind', 'prcp'
-    df_result = df.apply(calculate_ffmc, axis=1)
+    with nc.Dataset(path_to_rain_netcdf, 'r') as nc_rainfall, nc.Dataset(path_to_inca_other_netcdf, 'r') as nc_inca_param:
+        rainfall_data = nc_rainfall.variables["RR"][:].sum(axis=0)
+        uu_data = nc_inca_param.variables["UU"][:][0]
+        vv_data = nc_inca_param.variables["VV"][:][0]
+        t2m_data = nc_inca_param.variables["T2M"][:][0]
+        rh2m_data = nc_inca_param.variables["RH2M"][:][0]
+        wind_speed_data = calculate_wind_speed(uu_data, vv_data)
+        ffmc_0 = np.full(wind_speed_data.shape, ffmc_initial_value)
 
-    # Concatenate the original DataFrame with the result DataFrame
-    result_df = pd.concat([df, df_result], axis=1)
+        calculate_ffmc_vectorized = np.vectorize(calculate_ffmc)
+        ffmc_data = calculate_ffmc_vectorized(
+            ffmc_0, rh2m_data, t2m_data, rainfall_data, wind_speed_data)
 
-    print(result_df)
+        lon = nc_inca_param.variables['lon'][:]
+        lat = nc_inca_param.variables['lat'][:]
+
+    # create geotiff file from numpy arrays
+    gdal_create_geotiff_from_arrays(ffmc_data, lon, lat, PATH_TO_FFMC_LAYER)
+
+    # align and resample to reference grid
+    gdal_align_and_resample(
+        PATH_TO_FFMC_LAYER, PAHT_TO_FFMC_LAYER_RESAMPLED, PATH_TO_REF_RASTER, resample_algo)
