@@ -7,7 +7,7 @@ import pandas as pd
 from config.config import PATH_TO_REF_RASTER
 from src.inca_data_extraction import get_geosphere_data, calculate_wind_speed
 from src.fwi_system_calculator import calculate_ffmc
-from src.gdal_wrapper import gdal_align_and_resample, gdal_create_geotiff_from_arrays
+from src.gdal_wrapper import gdal_align_and_resample, gdal_create_geotiff_from_coords
 
 
 def bbox_to_str(bbox: List[float]) -> str:
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         lat = nc_inca_param.variables['lat'][:]
 
     # create geotiff file from numpy arrays
-    gdal_create_geotiff_from_arrays(ffmc_data, lon, lat, PATH_TO_FFMC_LAYER)
+    gdal_create_geotiff_from_coords(ffmc_data, lon, lat, PATH_TO_FFMC_LAYER)
 
     # align and resample to reference grid
     gdal_align_and_resample(

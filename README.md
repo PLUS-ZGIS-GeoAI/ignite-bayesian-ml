@@ -102,6 +102,8 @@ For open source projects, say how it is licensed.
 
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
 
+# TODO right now I have troubles with the feature layers - they seem to be not aligned with the ref raster. QGIs says that they have shape (4006, 7012) - when reading layers in with rasterio they have the shape (4010, 7012) as the reference raster - check out this weird behaviour
+
 # TODO start with training / inference data creation scripts -> continue working on create_training_dataset
 
 # TODO documentation FFMC calculation
