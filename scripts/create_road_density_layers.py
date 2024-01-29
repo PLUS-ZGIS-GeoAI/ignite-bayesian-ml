@@ -63,6 +63,7 @@ if __name__ == "__main__":
             layer_name, "density", None, REF_RASTER_SHAPE, "0", REF_RASTER_EXTENT, "Float32", pixel_mode=True
         )
 
+        # TODO might be redundant
         # Align and resample to reference grid
         gdal_align_and_resample(
             os.path.join(

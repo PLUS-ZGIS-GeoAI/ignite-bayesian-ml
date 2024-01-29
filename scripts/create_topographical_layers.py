@@ -10,7 +10,7 @@ if __name__ == "__main__":
     path_to_elevation = os.path.join(
         BASE_PATH, "data/raw/OGD_Topographie/dhm_at_lamb_10m_2018.tif")
     path_to_slope = os.path.join(
-        BASE_PATH, "data/processed/topographical_data/aspect_10m.tif")
+        BASE_PATH, "data/processed/topographical_data/slope_10m.tif")
     path_to_aspect = os.path.join(
         BASE_PATH, "data/processed/topographical_data/aspect_10m.tif")
 

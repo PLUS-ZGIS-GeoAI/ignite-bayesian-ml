@@ -24,57 +24,28 @@ def gdal_get_raster_info(raster_path: str) -> tuple:
     return spatial_ref, resolution, extent, shape, data_type
 
 
-'''
-def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: str, path_to_ref_raster: str, resample_alg: str, dtype: str = "Float32") -> None:
+def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: str, path_to_ref_raster: str, resample_alg: str) -> None:
     """
-    Aligns and resamples the input raster to match the specifications of the reference raster.
+    Aligns and resamples the input raster to match the specifications of the reference raster using gdal.Warp.
     """
-    target_srs, (x_res, y_res), (xmin, ymin, xmax,
-                                 ymax), shape, data_type = gdal_get_raster_info(path_to_ref_raster)
+    ref_ds = gdal.Open(path_to_ref_raster)
+    spatial_ref = ref_ds.GetProjection()
+    geo_transform = ref_ds.GetGeoTransform()
+    shape = (ref_ds.RasterXSize, ref_ds.RasterYSize)
 
-    # Build the gdalwarp command
-    command = [
-        'gdalwarp',
-        '-t_srs', target_srs,
-        '-tr', str(x_res), str(y_res),
-        '-te', str(xmin), str(ymin), str(xmax), str(ymax),
-        '-r', resample_alg,
-        '-dstnodata', 'None',
-        '-of', 'GTiff',
-        '-ot', dtype,
-        # '-co', creation_options,
-        path_to_input_raster,
-        path_to_output_raster
-    ]
+    warp_options = gdal.WarpOptions(
+        format='GTiff',
+        outputBounds=(geo_transform[0], geo_transform[3] + shape[1] * geo_transform[5],
+                      geo_transform[0] + shape[0] * geo_transform[1], geo_transform[3]),
+        xRes=geo_transform[1],
+        yRes=abs(geo_transform[5]),
+        resampleAlg=resample_alg,
+        dstSRS=spatial_ref,
+        dstNodata=None,
+    )
 
-    # Run the gdalwarp command
-    subprocess.run(command, check=True)
-'''
-
-
-def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: str, path_to_ref_raster: str, resample_alg: str, dtype: str = "Float32") -> None:
-    """
-    Aligns and resamples the input raster to match the specifications of the reference raster.
-    """
-    spatial_ref, (x_res, y_res), (xmin, ymin, xmax,
-                                  ymax), _, _ = gdal_get_raster_info(path_to_ref_raster)
-
-    # Build the gdalwarp command
-    command = [
-        'gdalwarp',
-        '-t_src', spatial_ref,
-        '-tr', str(x_res), str(y_res),
-        '-te', str(xmin), str(ymin), str(xmax), str(ymax),
-        '-r', resample_alg,
-        '-dstnodata', 'None',
-        '-of', 'GTiff',
-        '-ot', dtype,
-        path_to_input_raster,
-        path_to_output_raster
-    ]
-
-    # Run the gdalwarp command
-    subprocess.run(command, check=True)
+    gdal.Warp(path_to_output_raster,
+              path_to_input_raster, options=warp_options)
 
 
 def gdal_rasterize_vector_layer(path_to_vector_file: str, path_to_output: str, layer_name: str, col_name: str, resolution: str, shape: tuple, no_data_value: str, extent: tuple, dtype: str, pixel_mode: bool = False) -> None:

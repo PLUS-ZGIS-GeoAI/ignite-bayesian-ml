@@ -20,7 +20,7 @@ if __name__ == "__main__":
         # TODO what to do with this extent? Store in config?
         gdal_rasterize_vector_layer(
             path_to_pop_vector_layer, path_to_pop_raster_layer,
-            "geostat_pop", f"POP_{year}", "1000.0", None,  ("4287000.0", "2596000.0", "4853000.0", "2890000.0"), "Float32", pixel_mode=False
+            "geostat_pop", f"POP_{year}", "1000.0", ("566", "294"), "-1",  ("4287000.0", "2596000.0", "4853000.0", "2890000.0"), "Float32", pixel_mode=False
         )
 
         gdal_align_and_resample(path_to_pop_raster_layer,
