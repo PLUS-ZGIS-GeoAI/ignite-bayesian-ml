@@ -3,7 +3,7 @@ import geopandas as gpd
 import rasterio
 
 from config.config import BASE_PATH, PATH_TO_REF_RASTER, PROJECT_EPSG, REF_RASTER_EXTENT, REF_RASTER_SHAPE
-from src.gdal_wrapper import gdal_rasterize, gdal_align_and_resample
+from src.gdal_wrapper import gdal_rasterize_vector_layer, gdal_align_and_resample
 from src.utils import create_density_layer_vector, calculate_length
 
 if __name__ == "__main__":
@@ -55,7 +55,7 @@ if __name__ == "__main__":
             BASE_PATH, f"data/processed/road_density_layers/{layer_name}.shp"), calculate_length)
 
         # Rasterize vector layer
-        gdal_rasterize(
+        gdal_rasterize_vector_layer(
             os.path.join(
                 BASE_PATH, f"data/processed/road_density_layers/{layer_name}.shp"),
             os.path.join(

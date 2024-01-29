@@ -4,7 +4,7 @@ import pandas as pandas
 import geopandas as gpd
 
 from config.config import BASE_PATH, PATH_TO_REF_RASTER, PROJECT_EPSG, REF_RASTER_EXTENT, REF_RASTER_SHAPE
-from src.gdal_wrapper import gdal_rasterize, gdal_align_and_resample
+from src.gdal_wrapper import gdal_rasterize_vector_layer, gdal_align_and_resample
 from src.utils import create_density_layer_vector, calculate_area
 
 
@@ -42,8 +42,8 @@ if __name__ == "__main__":
         farmyard_gdf, ref_grid_vector, PATH_TO_FARMYARD_DENSITY_LAYER_VECTOR, calculate_area)
 
     # rasterize farmyard density vector file
-    gdal_rasterize(PATH_TO_FARMYARD_DENSITY_LAYER_VECTOR, PATH_TO_FARMYARD_DENSITY_LAYER,
-                   "farmyard_density_layer_vector", "density", None, REF_RASTER_SHAPE, "0", REF_RASTER_EXTENT, "Float32", pixel_mode=True)
+    gdal_rasterize_vector_layer(PATH_TO_FARMYARD_DENSITY_LAYER_VECTOR, PATH_TO_FARMYARD_DENSITY_LAYER,
+                                "farmyard_density_layer_vector", "density", None, REF_RASTER_SHAPE, "0", REF_RASTER_EXTENT, "Float32", pixel_mode=True)
 
     # align to other feature layers
     gdal_align_and_resample(PATH_TO_FARMYARD_DENSITY_LAYER,

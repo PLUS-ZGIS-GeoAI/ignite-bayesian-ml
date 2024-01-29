@@ -2,16 +2,17 @@ import requests
 import numpy as np
 import os
 
+from config.config import GEOSPHERE_INCA_GRID_URL
+
 
 # TODO add doc strings
 def get_geosphere_data(parameters, start_date, end_date, bbox, base_path_output, output_format='netcdf', filename_prefix='INCA_analysis'):
-    base_url = "https://dataset.api.hub.geosphere.at/v1/grid/historical/inca-v1-1h-1km"
 
     # Convert parameters to a comma-separated string
     parameters_str = '&'.join([f'parameters={param}' for param in parameters])
 
     # Build the URL with the provided parameters
-    url = f"{base_url}?{parameters_str}&start={start_date}&end={end_date}&bbox={bbox}&output_format={output_format}"
+    url = f"{GEOSPHERE_INCA_GRID_URL}?{parameters_str}&start={start_date}&end={end_date}&bbox={bbox}&output_format={output_format}"
 
     # Generate a filename based on the parameters and dates
     parameter_string_for_url = ""

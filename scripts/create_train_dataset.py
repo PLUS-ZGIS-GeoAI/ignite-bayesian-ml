@@ -5,7 +5,7 @@ from osgeo import gdal
 import geopandas as gpd
 import rasterio
 
-from config.config import BASE_PATH, PATH_TO_REF_RASTER
+from config.config import BASE_PATH, PATH_TO_REF_RASTER, GEO
 from src.gdal_wrapper import gdal_get_bool_mask_from_coords
 
 
