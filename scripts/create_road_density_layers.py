@@ -1,74 +1,59 @@
 import os
 import geopandas as gpd
-import rasterio
 
-from config.config import BASE_PATH, PATH_TO_REF_RASTER, PROJECT_EPSG, REF_RASTER_EXTENT, REF_RASTER_SHAPE
-from src.gdal_wrapper import gdal_rasterize_vector_layer, gdal_align_and_resample
+from config.config import PATH_TO_REF_RASTER, PROJECT_EPSG, PATH_TO_REF_GRID_VECTOR, PATH_TO_ROADS_DS, PATH_TO_RAILWAYS_DS, PATH_TO_FORESTROAD_DENSITY_LAYER, PATH_TO_HIKINGTRAIL_DENSITY_LAYER, PATH_TO_RAILWAY_DENSITY_LAYER, PATH_TO_FORESTROAD_DENSITY_VECTOR, PATH_TO_RAILWAY_DENSITY_VECTOR, PATH_TO_HIKINGTRAIL_DENSITY_VECTOR
+
+from src.gdal_wrapper import gdal_rasterize_vector_layer
 from src.utils import create_density_layer_vector, calculate_length
+
+
+def create_road_density_layer(roads_data: gpd.GeoDataFrame,
+                              ref_grid_vector: gpd.GeoDataFrame,
+                              road_types: list,
+                              attribute_name: str,
+                              path_to_density_layer_vector: str,
+                              path_to_raster_output: str):
+
+    road_gdf_selected = roads_data[roads_data.fclass.isin(road_types)]
+
+    # Create road density vector layer
+    create_density_layer_vector(
+        road_gdf_selected, ref_grid_vector, path_to_density_layer_vector, calculate_length, attribute_name
+    )
+
+    # extract layer name from path
+    layer_name = path_to_density_layer_vector.split("/")[-1].split(".")[0]
+
+    # Rasterize vector layer
+    gdal_rasterize_vector_layer(
+        path_to_density_layer_vector,
+        path_to_raster_output, PATH_TO_REF_RASTER, layer_name, attribute_name)
+
 
 if __name__ == "__main__":
 
-    resample_algo = "nearest neighbor"
+    # This is the name of the column of the vecctor layer that creates the feature value (e.g. road density)
+    attribute_name = "density"
 
-    # specify directories
-    PATH_TO_ROADS = os.path.join(
-        BASE_PATH, "data/raw/OSM_austria/austria-latest-free/gis_osm_roads_free_1.shp")
-    PATH_TO_RAILWAYS = os.path.join(
-        BASE_PATH, "data/raw/OSM_austria/austria-latest-free/gis_osm_railways_free_1.shp")
-    PATH_TO_REFERENCE_GRID_VECTOR = os.path.join(
-        BASE_PATH, "data/processed/reference_grid/inca_reference_grid_100m_vector_AUT/inca_ref_grid_100m_vector_AUT.shp")
-
-    ROAD_TYPES = [
-        ("rail", "railway_density_layer", "railway_density_layer_resampled"),
-        (["track", "track_grade1", "track_grade2", "track_grade3", "track_grade4",
-         "track_grade5"], "forestroad_density_layer", "forestroad_density_layer_resampled"),
-        ("path", "hikingtrail_density_layer",
-         "hikingtrail_density_layer_resampled")
-    ]
-
-    # Open specifications of reference raster
-    with rasterio.open(PATH_TO_REF_RASTER) as src:
-        REF_RASTER_META = src.profile
-
-    # Read in vector shapes of reference raster
-    ref_grid_vector = gpd.read_file(PATH_TO_REFERENCE_GRID_VECTOR)
+    # read in vectorized reference grid and reset index
+    ref_grid_vector = gpd.read_file(PATH_TO_REF_GRID_VECTOR)
     ref_grid_vector.reset_index(inplace=True)
+    ref_grid_vector = ref_grid_vector.to_crs(PROJECT_EPSG)
 
-    # Iterate over road types
-    for road_type, layer_name, resampled_suffix in ROAD_TYPES:
+    # read in osm road data and reproject to project projection
+    road_gdf = gpd.read_file(PATH_TO_ROADS_DS)
+    road_gdf = road_gdf.to_crs(PROJECT_EPSG)
+    railways_gdf = gpd.read_file(PATH_TO_RAILWAYS_DS)
+    railways_gdf = railways_gdf.to_crs(PROJECT_EPSG)
 
-        if road_type == "rail":
-            # Read in and prepare road data
-            road_gdf = gpd.read_file(PATH_TO_RAILWAYS)
-        else:
-            road_gdf = gpd.read_file(PATH_TO_ROADS)
+    # create forestroad density layer
+    create_road_density_layer(road_gdf, ref_grid_vector, ["track", "track_grade1", "track_grade2", "track_grade3", "track_grade4",
+                                                          "track_grade5"], attribute_name, PATH_TO_FORESTROAD_DENSITY_VECTOR, PATH_TO_FORESTROAD_DENSITY_LAYER)
 
-        road_gdf = road_gdf.to_crs(PROJECT_EPSG)
+    # create hikingtrail density layer
+    create_road_density_layer(road_gdf, ref_grid_vector, [
+                              "path"], attribute_name, PATH_TO_HIKINGTRAIL_DENSITY_VECTOR, PATH_TO_HIKINGTRAIL_DENSITY_LAYER)
 
-        if isinstance(road_type, list):
-            road_gdf = road_gdf[road_gdf.fclass.isin(road_type)]
-        else:
-            road_gdf = road_gdf[road_gdf.fclass == road_type]
-
-        # Create road density vector layer
-        create_density_layer_vector(road_gdf, ref_grid_vector, os.path.join(
-            BASE_PATH, f"data/processed/road_density_layers/{layer_name}.shp"), calculate_length)
-
-        # Rasterize vector layer
-        gdal_rasterize_vector_layer(
-            os.path.join(
-                BASE_PATH, f"data/processed/road_density_layers/{layer_name}.shp"),
-            os.path.join(
-                BASE_PATH, f"data/processed/road_density_layers/{layer_name}.tif"),
-            layer_name, "density", None, REF_RASTER_SHAPE, "0", REF_RASTER_EXTENT, "Float32", pixel_mode=True
-        )
-
-        # TODO might be redundant
-        # Align and resample to reference grid
-        gdal_align_and_resample(
-            os.path.join(
-                BASE_PATH, f"data/processed/road_density_layers/{layer_name}.tif"),
-            os.path.join(
-                BASE_PATH, f"data/processed/road_density_layers/{resampled_suffix}_{resample_algo}.tif"),
-            PATH_TO_REF_RASTER, resample_algo
-        )
+    # create railway density layer
+    create_road_density_layer(railways_gdf, ref_grid_vector, [
+                              "rail"], attribute_name, PATH_TO_RAILWAY_DENSITY_VECTOR, PATH_TO_RAILWAY_DENSITY_LAYER)

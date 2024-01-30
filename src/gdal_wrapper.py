@@ -1,7 +1,6 @@
-from osgeo import gdal, osr
 import subprocess
 import numpy as np
-from typing import List
+from osgeo import gdal, osr
 
 # TODO add docstring to each function
 
@@ -48,33 +47,27 @@ def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: st
               path_to_input_raster, options=warp_options)
 
 
-def gdal_rasterize_vector_layer(path_to_vector_file: str, path_to_output: str, layer_name: str, col_name: str, resolution: str, shape: tuple, no_data_value: str, extent: tuple, dtype: str, pixel_mode: bool = False) -> None:
+def gdal_rasterize_vector_layer(path_to_vector_file: str, path_to_output: str, path_to_ref_raster: str, layer_name: str, col_name: str) -> None:
     """
     Create a raster from a vector file using GDAL.
     """
+
+    ref_ds = gdal.Open(path_to_ref_raster)
+    geo_transform = ref_ds.GetGeoTransform()
+    shape = (ref_ds.RasterXSize, ref_ds.RasterYSize)
+    extent = (geo_transform[0], geo_transform[3] + shape[1] * geo_transform[5],
+              geo_transform[0] + shape[0] * geo_transform[1], geo_transform[3])
+
     command = [
         "gdal_rasterize",
         "-l", layer_name,
         "-a", col_name,
-    ]
-
-    if pixel_mode:
-        command.extend([
-            "-ts", str(shape[0]), str(shape[1]),
-        ])
-    else:
-        command.extend([
-            "-tr", resolution, resolution,
-        ])
-
-    command.extend([
-        "-a_nodata", no_data_value,
+        "-ts", str(shape[0]), str(shape[1]),
         "-te", str(extent[0]), str(extent[1]), str(extent[2]), str(extent[3]),
-        "-ot", dtype,
         "-of", "GTiff",
         path_to_vector_file,
         path_to_output
-    ])
+    ]
 
     subprocess.run(command)
 
@@ -101,42 +94,3 @@ def gdal_create_geotiff_from_nc(data: np.array, lon: np.array, lat: np.array, pa
 
     out_band.FlushCache()
     out_dataset.FlushCache()
-
-
-def gdal_get_bool_mask_from_coords(coords: List[tuple], path_to_ref_raster: str) -> np.array:
-    """creates a boolean mask with the same shape of the reference raster. Cells containing a coordinate pair are True, others are False
-
-    Args:
-        coords (List[tuple]): List containing the coordinate pairs as tuples
-        path_to_ref_raster (str): path to reference raster 
-
-    Returns:
-        np.array: boolean mask 
-    """
-
-    ref_raster = gdal.Open(path_to_ref_raster)
-
-    # Get raster dimensions
-    raster_cols = ref_raster.RasterXSize
-    raster_rows = ref_raster.RasterYSize
-
-    # Get raster geotransformation information
-    geotransform = ref_raster.GetGeoTransform()
-    x_origin, pixel_width, _, y_origin, _, pixel_height = geotransform
-
-    # Transform coordinates to pixel indices
-    x_indices = ((np.array(coords)[:, 0] - x_origin) / pixel_width).astype(int)
-    y_indices = ((np.array(coords)[:, 1] -
-                 y_origin) / pixel_height).astype(int)
-
-    # Create a boolean mask with False
-    boolean_mask = np.zeros((raster_rows, raster_cols), dtype=bool)
-
-    # Clip indices to valid range
-    x_indices = np.clip(x_indices, 0, raster_cols - 1)
-    y_indices = np.clip(y_indices, 0, raster_rows - 1)
-
-    # Set corresponding cells to True
-    boolean_mask[y_indices, x_indices] = True
-
-    return boolean_mask

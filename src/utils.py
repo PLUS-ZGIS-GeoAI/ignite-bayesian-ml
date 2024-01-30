@@ -1,7 +1,7 @@
 import geopandas as gpd
 
 
-def create_density_layer_vector(input_layer: gpd.GeoDataFrame, ref_grid_vector: gpd.GeoDataFrame, path_to_density_vector_layer: str, density_function):
+def create_density_layer_vector(input_layer: gpd.GeoDataFrame, ref_grid_vector: gpd.GeoDataFrame, path_to_density_vector_layer: str, density_function, attribute_name: str = "density"):
     """Creates a vector layer storing the density of intersecting features for each cell.
 
     Args:
@@ -15,11 +15,11 @@ def create_density_layer_vector(input_layer: gpd.GeoDataFrame, ref_grid_vector: 
     ref_raster_overlay = gpd.overlay(input_layer, ref_grid_vector)
 
     # Calculate density of features in each cell
-    ref_raster_overlay["density"] = density_function(ref_raster_overlay)
+    ref_raster_overlay[attribute_name] = density_function(ref_raster_overlay)
 
     # Group by and aggregate to get density per cell
     density_per_cell = ref_raster_overlay.groupby(
-        by="index").agg({"density": "sum"}).reset_index()
+        by="index").agg({attribute_name: "sum"}).reset_index()
 
     # Merge density information and ref grid
     density_layer = ref_grid_vector.merge(

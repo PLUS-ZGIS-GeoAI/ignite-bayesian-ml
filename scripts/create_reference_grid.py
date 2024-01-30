@@ -2,6 +2,8 @@ import rasterio
 from rasterio.transform import from_origin
 import pyproj
 
+from config.config import PATH_TO_REF_RASTER
+
 
 def create_raster(target_projection: str, ne_corner_wgs84: tuple, sw_corner_wgs84: tuple, num_grid_points_x: int, num_grid_points_y: int, output_path: str):
     """
@@ -45,6 +47,7 @@ def create_raster(target_projection: str, ne_corner_wgs84: tuple, sw_corner_wgs8
 
 if __name__ == "__main__":
 
+    '''
     # create INCA reference raster since 2013
     x_res, y_res = create_raster(target_projection='EPSG:31287',
                                  ne_corner_wgs84=(17.7438, 49.3973),
@@ -60,6 +63,7 @@ if __name__ == "__main__":
                                  num_grid_points_x=601,
                                  num_grid_points_y=351,
                                  output_path="INCA_ref_raster_before_2013.tif")
+    '''
 
     # create INCA reference raster with 100m resolution
     x_res, y_res = create_raster(target_projection='EPSG:31287',
@@ -67,4 +71,4 @@ if __name__ == "__main__":
                                  sw_corner_wgs84=(8.4445, 45.7727),
                                  num_grid_points_x=7010,
                                  num_grid_points_y=4010,
-                                 output_path="INCA_ref_raster_since_2013_100m.tif")
+                                 output_path=PATH_TO_REF_RASTER)
