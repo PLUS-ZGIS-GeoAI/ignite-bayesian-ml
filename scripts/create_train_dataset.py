@@ -3,7 +3,8 @@ import numpy as np
 import rasterio
 import geopandas as gpd
 
-from config.config import BASE_PATH
+from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE
+from src.utils import load_paths_from_yaml, replace_base_path
 
 
 def add_feature_from_raster(events: gpd.GeoDataFrame, path_to_raster: str, feature_name: str) -> gpd.GeoDataFrame:
@@ -35,27 +36,26 @@ def calculate_ffmc_for_specific_locations():
 
 if __name__ == "__main__":
 
-    path_to_fire_events = os.path.join(
-        BASE_PATH, "data/processed/fire_data/fire_data.shp")
+    # Load paths from the YAML file
+    paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
+    paths = replace_base_path(paths, BASE_PATH)
 
     FEATURE_INFO = [
-        ("pop_2006", "data/proceseed/population_data/geostat_2006_resampled_Average.tif"),
-        ("pop_2011", "data/proceseed/population_data/geostat_2011_resampled_Average.tif"),
-        ("pop_2018", "data/proceseed/population_data/geostat_2018_resampled_Average.tif"),
-        ("pop_2021", "data/proceseed/population_data/geostat_2021_resampled_Average.tif"),
-        ("farmyard_density", "data/processed/farmyard_density_layer/farmyard_density.tif"),
-        ("hinkingtrail_density",
-         "data/processed/road_density_layers/hikingtrail_density.tif"),
-        ("forestroad_density", "data/processed/road_density_layers/forestroad_density.tif")
-        ("railway_density", "data/processed/road_density_layers/railway_density.tif"),
-        ("elevation", "data/processed/topographical_data/elevation_resampled_Average.tif"),
-        ("slope", "data/processed/topographical_data/slope_resampled_Average.tif"),
-        ("aspect", "data/processed/topographical_data/aspect_resampled_Average.tif"),
-        ("forest_type", "data/processed/forest_type/tree_type_resampled_mode.tif")
-
+        ("pop_2006", paths["population_layers"]["2006"]["final"]),
+        ("pop_2011", paths["population_layers"]["2011"]["final"]),
+        ("pop_2018", paths["population_layers"]["2018"]["final"]),
+        ("pop_2021", paths["population_layers"]["2021"]["final"]),
+        ("farmyard_density", paths["farmyard_density"]["final"]),
+        ("hinkingtrail_density", paths["roads"]["hikingstrails"]["final"]),
+        ("forestroad_density", paths["roads"]["forestroads"]["final"])
+        ("railway_density", paths["railways"]["final"]),
+        ("elevation", paths["topographical_layers"]["elevation"]["final"]),
+        ("slope", paths["topographical_layers"]["slope"]["final"]),
+        ("aspect", paths["topographical_layers"]["aspect"]["final"]),
+        ("forest_type", paths["tree_type"]["final"])
     ]
 
-    event_data = gpd.read_file(path_to_fire_events)
+    event_data = gpd.read_file(paths["fire_events"]["final"])
 
     # add all static features to training data
     for feature_name, rel_feature_layer_path in FEATURE_INFO:

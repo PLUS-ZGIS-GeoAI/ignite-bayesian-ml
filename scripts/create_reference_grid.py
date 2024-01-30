@@ -1,8 +1,8 @@
 import rasterio
-from rasterio.transform import from_origin
 import pyproj
 
-from config.config import PATH_TO_REF_RASTER
+from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE
+from src.utils import load_paths_from_yaml, replace_base_path
 
 
 def create_raster(target_projection: str, ne_corner_wgs84: tuple, sw_corner_wgs84: tuple, num_grid_points_x: int, num_grid_points_y: int, output_path: str):
@@ -23,7 +23,7 @@ def create_raster(target_projection: str, ne_corner_wgs84: tuple, sw_corner_wgs8
     pixel_size_y = (ne_corner[1] - sw_corner[1]) / num_grid_points_y
 
     # Create the transformation matrix
-    transform = from_origin(
+    transform = rasterio.transform.from_origin(
         sw_corner[0], ne_corner[1], pixel_size_x, pixel_size_y)
 
     # Create an empty raster
@@ -46,6 +46,10 @@ def create_raster(target_projection: str, ne_corner_wgs84: tuple, sw_corner_wgs8
 
 
 if __name__ == "__main__":
+
+    # Load paths from the YAML file
+    paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
+    paths = replace_base_path(paths, BASE_PATH)
 
     '''
     # create INCA reference raster since 2013
@@ -71,4 +75,4 @@ if __name__ == "__main__":
                                  sw_corner_wgs84=(8.4445, 45.7727),
                                  num_grid_points_x=7010,
                                  num_grid_points_y=4010,
-                                 output_path=PATH_TO_REF_RASTER)
+                                 output_path=paths["reference_grid"]["raster"])

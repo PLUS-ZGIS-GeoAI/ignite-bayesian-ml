@@ -1,20 +1,25 @@
-import os
-from config.config import PATH_TO_REF_RASTER, PATH_TO_ELEVATION_DS, PATH_TO_SLOPE_DS, PATH_TO_ASPECT_DS, PATH_TO_ELEVATION_LAYER, PATH_TO_SLOPE_LAYER, PATH_TO_ASPECT_LAYER
+from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE
+from src.utils import load_paths_from_yaml, replace_base_path
 from src.gdal_wrapper import gdal_align_and_resample
 
 
+RESAMPLE_ALGORITHM = "Average"
+
 if __name__ == "__main__":
 
-    resample_alg = "Average"
+    # Load paths from the YAML file
+    paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
+    paths = replace_base_path(paths, BASE_PATH)
+    paths_topo = paths["topographical_layers"]
 
     # resample elevation layer to reference raster
-    gdal_align_and_resample(PATH_TO_ELEVATION_DS,
-                            PATH_TO_ELEVATION_LAYER, PATH_TO_REF_RASTER, resample_alg)
+    gdal_align_and_resample(paths_topo["elevation"]["source"],
+                            paths_topo["elevation"]["final"], paths["reference_grid"]["raster"], RESAMPLE_ALGORITHM)
 
     # resample slope layer to reference raster
-    gdal_align_and_resample(PATH_TO_SLOPE_DS,
-                            PATH_TO_SLOPE_LAYER, PATH_TO_REF_RASTER, resample_alg)
+    gdal_align_and_resample(paths_topo["slope"]["source"],
+                            paths_topo["slope"]["final"], paths["reference_grid"]["raster"], RESAMPLE_ALGORITHM)
 
     # resample aspect to reference raster
-    gdal_align_and_resample(PATH_TO_ASPECT_DS,
-                            PATH_TO_ASPECT_LAYER, PATH_TO_REF_RASTER, resample_alg)
+    gdal_align_and_resample(paths_topo["aspect"]["source"],
+                            paths_topo["aspect"]["final"], paths["reference_grid"]["raster"], RESAMPLE_ALGORITHM)

@@ -1,0 +1,68 @@
+base_path: "C:/Users/David/Documents/ZGIS/Nextcloud_MyFiles/Projects/IGNITE"
+
+reference_grid:
+  raster: "{base_path}/data/processed/reference_grid/INCA_ref_raster_since_2013_100m.tif"
+  vector: "{base_path}/data/processed/reference_grid/inca_ref_grid_100m_vector/inca_ref_grid_100m_vector.shp"
+
+fire_events:
+  source: "{base_path}/data/raw/BOKU_Fire_Ignitions/boku_wildfire_ignitions.shp"
+  final: "{base_path}/data/processed/fire_data/fire_data.shp"
+
+forest_type:
+  source: "{base_path}/data/raw/BWF_forest_type/forest_type_merged.tif"
+  final: "{base_path}/data/processed/forest_type/forest_type_layer.tif"
+
+roads:
+  source: "{base_path}/data/raw/OSM_austria/austria-latest-free/gis_osm_roads_free_1.shp"
+  forestroads:
+    intermediate: "{base_path}/data/processed/road_density_layers/forestroad_density_vector/forestroad_density_vector.shp"
+    final: "{base_path}/data/processed/road_density_layers/forestroad_density_layer.tif"
+  hikingtrails:
+    intermediate: "{base_path}/data/processed/road_density_layers/hikingtrail_density_vector/hikingtrail_density_vector.shp"
+    final: "{base_path}/data/processed/road_density_layers/hikingtrail_density_layer.tif"
+railways:
+  source: "{base_path}/data/raw/OSM_austria/austria-latest-free/gis_osm_railways_free_1.shp"
+  intermediate: "{base_path}/data/processed/road_density_layers/railway_density_vector/railway_density_vector.shp"
+  final: "{base_path}/data/processed/road_density_layers/railway_density_layer.tif"
+
+farmyard_density:
+  source: "{base_path}/data/processed/farmyard_density_layer/osm_lu_farmyards/osm_lu_farmyards.shp"
+  intermediate: "{base_path}/data/processed/farmyard_density_layer/farmyard_density_layer_vector.shp"
+  final: "{base_path}/data/processed/farmyard_density_layer/farmyard_density_layer.tif"
+
+topographical_layers:
+  elevation:
+    source: "{base_path}/data/raw/OGD_Topographie/dhm_at_lamb_10m_2018.tif"
+    final: "{base_path}/data/processed/topographical_data/elevation_layer.tif"
+  slope:
+    source: "{base_path}/data/processed/topographical_data/slope_10m.tif"
+    final: "{base_path}/data/processed/topographical_data/slope_layer.tif"
+  aspect:
+    source: "{base_path}/data/processed/topographical_data/aspect_10m.tif"
+    final: "{base_path}/data/processed/topographical_data/aspect_layer.tif"
+
+population_layers:
+  population_all_years_vector: "{base_path}/data/processed/population_data/population_data_all_years_vector/geostat_pop.shp"
+  intermediate_pop_ref_raster: "{base_path}/data/raw/GEOSTAT_POPULATION/JRC_GRID_2018/JRC_1K_POP_2018.tif"
+  "2006":
+    source: "{base_path}/data/raw/GEOSTAT_Population/GEOSTAT_Grid_POP_2006_1K/GEOSTAT_grid_EU_POP_2006_1K_V1_1_1.csv"
+    intermediate: "{base_path}/data/processed/population_data/population_2006_intermediate_layer.tif"
+    final: "{base_path}/data/processed/population_data/population_2006_layer.tif"
+  "2011":
+    source: "{base_path}/data/raw/GEOSTAT_Population/GEOSTAT-grid-POP-1K-2011-V2-0-1/Version 2_0_1/GEOSTAT_grid_POP_1K_2011_V2_0_1.csv"
+    intermediate: "{base_path}/data/processed/population_data/population_2011_intermediate_layer.tif"
+    final: "{base_path}/data/processed/population_data/population_2011_layer.tif"
+  "2018":
+    source: "{base_path}/data/raw/GEOSTAT_POPULATION/JRC_GRID_2018/JRC_POPULATION_2018.shp"
+    intermediate: "{base_path}/data/processed/population_data/population_2018_intermediate_layer.tif"
+    final: "{base_path}/data/processed/population_data/population_2018_layer.tif"
+  "2021":
+    source: "{base_path}/data/raw/GEOSTAT_Population/Eurostat_Census-GRID_2021_V1-0/ESTAT_Census_2011_V1-0.gpkg"
+    intermediate: "{base_path}/data/processed/population_data/population_2021_intermediate_layer.tif"
+    final: "{base_path}/data/processed/population_data/population_2021_layer.tif"
+
+nuts_data: "{base_path}/data/raw/EU_NUTS/NUTS_RG_01M_2021_3035.shp"
+
+ffmc:
+  intermediate: "{base_path}/data/processed/ffmc/ffmc_intermediate_layer"
+  final: "{base_path}/data/processed/ffmc/ffmc_layer"
