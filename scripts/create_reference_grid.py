@@ -45,7 +45,7 @@ def create_raster(target_projection: str, ne_corner_wgs84: tuple, sw_corner_wgs8
     return pixel_size_x, pixel_size_y
 
 
-if __name__ == "__main__":
+def main():
 
     # Load paths from the YAML file
     paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
@@ -76,3 +76,7 @@ if __name__ == "__main__":
                                  num_grid_points_x=7010,
                                  num_grid_points_y=4010,
                                  output_path=paths["reference_grid"]["raster"])
+
+
+if __name__ == "__main__":
+    main()

@@ -64,5 +64,6 @@ population_layers:
 nuts_data: "{base_path}/data/raw/EU_NUTS/NUTS_RG_01M_2021_3035.shp"
 
 ffmc:
-  intermediate: "{base_path}/data/processed/ffmc/ffmc_intermediate_layer"
-  final: "{base_path}/data/processed/ffmc/ffmc_layer"
+  source: "{base_path}/data/raw/GEOSPHERE_Inca_data/"
+  intermediate: "{base_path}/data/processed/ffmc_data/ffmc_intermediate_layer"
+  final: "{base_path}/data/processed/ffmc_data/ffmc_layer"

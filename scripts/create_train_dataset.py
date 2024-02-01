@@ -34,7 +34,7 @@ def calculate_ffmc_for_specific_locations():
     pass
 
 
-if __name__ == "__main__":
+def main():
 
     # Load paths from the YAML file
     paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
@@ -46,13 +46,13 @@ if __name__ == "__main__":
         ("pop_2018", paths["population_layers"]["2018"]["final"]),
         ("pop_2021", paths["population_layers"]["2021"]["final"]),
         ("farmyard_density", paths["farmyard_density"]["final"]),
-        ("hinkingtrail_density", paths["roads"]["hikingstrails"]["final"]),
-        ("forestroad_density", paths["roads"]["forestroads"]["final"])
+        ("hinkingtrail_density", paths["roads"]["hikingtrails"]["final"]),
+        ("forestroad_density", paths["roads"]["forestroads"]["final"]),
         ("railway_density", paths["railways"]["final"]),
         ("elevation", paths["topographical_layers"]["elevation"]["final"]),
         ("slope", paths["topographical_layers"]["slope"]["final"]),
         ("aspect", paths["topographical_layers"]["aspect"]["final"]),
-        ("forest_type", paths["tree_type"]["final"])
+        ("forest_type", paths["forest_type"]["final"])
     ]
 
     event_data = gpd.read_file(paths["fire_events"]["final"])
@@ -64,4 +64,10 @@ if __name__ == "__main__":
             event_data, path_to_feature_layer, feature_name)
 
     # add FFMC values to training data
-    calculate_ffmc_for_specific_locations()
+    # calculate_ffmc_for_specific_locations()
+
+    print(event_data.head())
+
+
+if __name__ == "__main__":
+    main()

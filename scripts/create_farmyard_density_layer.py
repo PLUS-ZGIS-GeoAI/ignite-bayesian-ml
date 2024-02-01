@@ -7,7 +7,7 @@ from src.gdal_wrapper import gdal_rasterize_vector_layer
 from src.utils import create_density_layer_vector, calculate_area
 
 
-if __name__ == "__main__":
+def main():
 
     # Load paths from the YAML file
     paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
@@ -28,3 +28,7 @@ if __name__ == "__main__":
     # rasterize farmyard density vector file
     gdal_rasterize_vector_layer(paths["farmyard_density"]["intermediate"], paths["farmyard_density"]
                                 ["final"], paths["reference_grid"]["raster"], "farmyard_density_layer_vector", "density")
+
+
+if __name__ == "__main__":
+    main()

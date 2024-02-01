@@ -5,7 +5,8 @@ from src.gdal_wrapper import gdal_align_and_resample
 
 RESAMPLE_ALGORITHM = "Average"
 
-if __name__ == "__main__":
+
+def main():
 
     # Load paths from the YAML file
     paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
@@ -23,3 +24,7 @@ if __name__ == "__main__":
     # resample aspect to reference raster
     gdal_align_and_resample(paths_topo["aspect"]["source"],
                             paths_topo["aspect"]["final"], paths["reference_grid"]["raster"], RESAMPLE_ALGORITHM)
+
+
+if __name__ == "__main__":
+    main()

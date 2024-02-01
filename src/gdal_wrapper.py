@@ -1,5 +1,6 @@
 import subprocess
 import numpy as np
+from typing import Optional
 from osgeo import gdal, osr
 
 # TODO add docstring to each function
@@ -23,7 +24,7 @@ def gdal_get_raster_info(raster_path: str) -> tuple:
     return spatial_ref, resolution, extent, shape, data_type
 
 
-def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: str, path_to_ref_raster: str, resample_alg: str) -> None:
+def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: str, path_to_ref_raster: str, resample_alg: str, nodata_value: Optional[float] = None) -> None:
     """
     Aligns and resamples the input raster to match the specifications of the reference raster using gdal.Warp.
     """
@@ -40,7 +41,7 @@ def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: st
         yRes=abs(geo_transform[5]),
         resampleAlg=resample_alg,
         dstSRS=spatial_ref,
-        dstNodata=None,
+        dstNodata=nodata_value,
     )
 
     gdal.Warp(path_to_output_raster,

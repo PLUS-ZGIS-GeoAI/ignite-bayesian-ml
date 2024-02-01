@@ -14,7 +14,8 @@ def create_road_density_layer(roads_data: gpd.GeoDataFrame,
                               road_types: list,
                               attribute_name: str,
                               path_to_density_layer_vector: str,
-                              path_to_raster_output: str):
+                              path_to_raster_output: str,
+                              path_to_ref_grid: str):
 
     road_gdf_selected = roads_data[roads_data.fclass.isin(road_types)]
 
@@ -29,10 +30,10 @@ def create_road_density_layer(roads_data: gpd.GeoDataFrame,
     # Rasterize vector layer
     gdal_rasterize_vector_layer(
         path_to_density_layer_vector,
-        path_to_raster_output, paths["reference_grid"]["raster"], layer_name, attribute_name)
+        path_to_raster_output, path_to_ref_grid, layer_name, attribute_name)
 
 
-if __name__ == "__main__":
+def main():
 
     # Load paths from the YAML file
     paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
@@ -49,14 +50,25 @@ if __name__ == "__main__":
     railways_gdf = gpd.read_file(paths["railways"]["source"])
     railways_gdf = railways_gdf.to_crs(PROJECT_EPSG)
 
+    path_to_ref_grid = paths["reference_grid"]["raster"]
+
     # create forestroad density layer
-    create_road_density_layer(road_gdf, ref_grid_vector, ["track", "track_grade1", "track_grade2", "track_grade3", "track_grade4",
-                                                          "track_grade5"], ATTRIBUTE_NAME, paths["roads"]["forestroads"]["intermediate"], paths["roads"]["forestroads"]["final"])
+    create_road_density_layer(road_gdf, ref_grid_vector,
+                              ["track", "track_grade1", "track_grade2", "track_grade3",
+                                  "track_grade4", "track_grade5"], ATTRIBUTE_NAME,
+                              paths["roads"]["forestroads"]["intermediate"],
+                              paths["roads"]["forestroads"]["final"], path_to_ref_grid)
 
     # create hikingtrail density layer
-    create_road_density_layer(road_gdf, ref_grid_vector, [
-                              "path"], ATTRIBUTE_NAME, paths["roads"]["hikingtrails"]["intermediate"], paths["roads"]["hikingtrails"]["final"])
+    create_road_density_layer(road_gdf, ref_grid_vector, ["path"], ATTRIBUTE_NAME,
+                              paths["roads"]["hikingtrails"]["intermediate"],
+                              paths["roads"]["hikingtrails"]["final"], path_to_ref_grid)
 
     # create railway density layer
-    create_road_density_layer(railways_gdf, ref_grid_vector, [
-                              "rail"], ATTRIBUTE_NAME, paths["railways"]["intermediate"], paths["railways"]["final"])
+    create_road_density_layer(railways_gdf, ref_grid_vector, ["rail"], ATTRIBUTE_NAME,
+                              paths["railways"]["intermediate"],
+                              paths["railways"]["final"], path_to_ref_grid)
+
+
+if __name__ == "__main__":
+    main()
