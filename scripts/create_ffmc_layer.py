@@ -2,11 +2,10 @@ from typing import List
 import argparse
 import netCDF4 as nc
 import numpy as np
-import pandas as pd
 
 from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE, BBOX_AUSTRIA
-from src.utils import load_paths_from_yaml, replace_base_path
-from src.inca_data_extraction import get_geosphere_data, calculate_wind_speed
+from src.utils import load_paths_from_yaml, replace_base_path, calculate_date_of_interest_x_hours_before
+from src.inca_data_extraction import get_geosphere_data_grid, calculate_wind_speed
 from src.fwi_system_calculator import calculate_ffmc
 from src.gdal_wrapper import gdal_align_and_resample, gdal_create_geotiff_from_nc
 
@@ -42,11 +41,6 @@ def extract_arrays_from_inca_nc(path_to_rainfall_nc: str, path_to_other_paramete
         return ffmc_data, lon, lat
 
 
-def calculate_date_of_interest_24h_before(date_of_interest: str) -> str:
-    """Calculates date 24 hours before the date of interest"""
-    return (pd.to_datetime(date_of_interest, format='%Y-%m-%dT%H:%M') - pd.Timedelta(hours=24)).isoformat()
-
-
 def create_ffmc_layer_paths(paths: dict, date_str_for_file_name: str) -> tuple:
     """Creates paths to intermediate and final FFMC layers"""
     path_to_intermediate_ffmc_layer = paths["ffmc"]["intermediate"] + \
@@ -58,8 +52,8 @@ def create_ffmc_layer_paths(paths: dict, date_str_for_file_name: str) -> tuple:
 
 def create_ffmc_layer(paths: dict, date_of_interest: str, bbox: List[float]) -> None:
     """Creates FFMC layer aligned with reference grid"""
-    date_of_interest_24h_before = calculate_date_of_interest_24h_before(
-        date_of_interest)
+    date_of_interest_24h_before = calculate_date_of_interest_x_hours_before(
+        date_of_interest, 24)
     date_str_for_file_name = date_of_interest.split("T")[0].replace("-", "")
 
     # Create paths to intermediate and final FFMC layers
@@ -67,9 +61,9 @@ def create_ffmc_layer(paths: dict, date_of_interest: str, bbox: List[float]) -> 
         date_str_for_file_name)
 
     # Retrieve data from geosphere API
-    path_to_rain_netcdf = get_geosphere_data(
+    path_to_rain_netcdf = get_geosphere_data_grid(
         PARAMETER_RAINFALL, date_of_interest_24h_before, date_of_interest, bbox_to_str(bbox), paths["ffmc"]["source"])
-    path_to_inca_other_netcdf = get_geosphere_data(
+    path_to_inca_other_netcdf = get_geosphere_data_grid(
         PARAMETERS_OTHER, date_of_interest_24h_before, date_of_interest, bbox_to_str(bbox), paths["ffmc"]["source"])
 
     # Extract FFMC, longitude, and latitude numpy arrays

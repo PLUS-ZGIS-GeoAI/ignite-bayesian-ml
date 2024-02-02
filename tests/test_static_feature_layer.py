@@ -41,6 +41,8 @@ class TestFeatureLayersStatic(unittest.TestCase):
             with self.subTest(layer_name=layer_name):
                 assert_layer_specifications(self, layer_path)
 
+    # TODO implement tests to evaluate if values in feature layers are plausible
+
 
 if __name__ == "__main__":
     unittest.main()

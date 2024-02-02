@@ -1,12 +1,14 @@
+import os
 import requests
 import numpy as np
-import os
+from datetime import datetime
 
-from config.config import GEOSPHERE_INCA_GRID_URL
+from config.config import GEOSPHERE_INCA_GRID_URL, GEOSPHERE_INCA_TS_URL
+from src.utils import calculate_date_of_interest_x_hours_before
 
 
 # TODO add doc strings
-def get_geosphere_data(parameters, start_date, end_date, bbox, base_path_output, output_format='netcdf', filename_prefix='INCA_analysis'):
+def get_geosphere_data_grid(parameters, start_date, end_date, bbox, base_path_output, output_format='netcdf', filename_prefix='INCA_analysis'):
 
     # Convert parameters to a comma-separated string
     parameters_str = '&'.join([f'parameters={param}' for param in parameters])
@@ -39,3 +41,22 @@ def get_geosphere_data(parameters, start_date, end_date, bbox, base_path_output,
 def calculate_wind_speed(uu: float, vv: float):
     "calculates wind speed from u and v component"
     return np.sqrt(uu**2 + vv**2)
+
+
+def get_geosphere_data_points(parameter: str, dt: str, hours: int, coordinates: tuple, output_format: str = "geojson"):
+
+    start_time = calculate_date_of_interest_x_hours_before(dt, hours)
+
+    url = f'{GEOSPHERE_INCA_TS_URL}?parameters={parameter}&start={start_time}&end={dt}&lat_lon={coordinates[0]},{coordinates[1]}&output_format={output_format}'
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        param_sum = np.sum(data["features"][0]["properties"]
+                           ["parameters"][parameter]["data"])
+        return param_sum
+
+    else:
+        raise Exception(
+            f'Request failed with status code {response.status_code}.')

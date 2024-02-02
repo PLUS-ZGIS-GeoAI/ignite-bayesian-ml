@@ -1,4 +1,5 @@
 import yaml
+import pandas as pd
 import geopandas as gpd
 
 
@@ -60,3 +61,8 @@ def replace_base_path(data, base_path):
     elif isinstance(data, list):
         data = [replace_base_path(item, base_path) for item in data]
     return data
+
+
+def calculate_date_of_interest_x_hours_before(date_of_interest: str, hours: int) -> str:
+    """Calculates date x hours before the date of interest"""
+    return (pd.to_datetime(date_of_interest, format='%Y-%m-%dT%H:%M') - pd.Timedelta(hours=hours)).isoformat()

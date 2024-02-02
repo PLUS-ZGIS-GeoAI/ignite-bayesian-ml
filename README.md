@@ -102,7 +102,7 @@ For open source projects, say how it is licensed.
 
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
 
-# TODO Create script for training data creation --> Create function for calculating FFMC values for point locations
+# TODO create full training dataset and save
 
 # TODO Notebook for model training. Creating Pipeline. Create OC-SVM model. Model Evaluation (train eval split by time)
 
@@ -111,5 +111,7 @@ If you have run out of energy or time for your project, put a note at the top of
 # TODO write tests for data validation (feature layers, train and inference)
 
 # TODO create Pipeline for making regular predictions
+
+# TODO make production ready ... (Cloud, Schedule, Tests, CI/CD)
 
 # TODO update README

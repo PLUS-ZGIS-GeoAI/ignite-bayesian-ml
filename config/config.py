@@ -1,5 +1,6 @@
 # Geosphere Data API INCA grid data
 GEOSPHERE_INCA_GRID_URL = "https://dataset.api.hub.geosphere.at/v1/grid/historical/inca-v1-1h-1km"
+GEOSPHERE_INCA_TS_URL = 'https://dataset.api.hub.geosphere.at/v1/timeseries/historical/inca-v1-1h-1km'
 
 # Project EPSG - every layer should be in this projection
 PROJECT_EPSG = "EPSG:31287"
