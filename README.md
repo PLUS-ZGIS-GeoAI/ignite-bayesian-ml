@@ -102,6 +102,12 @@ For open source projects, say how it is licensed.
 
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
 
+# TODO change file name and paths in notebook for inca data retrieval for training
+
+# TODO delete notebook and create script for inca data retrieval
+
+# TODO restructure project
+
 # TODO create full training dataset and save
 
 # TODO Notebook for model training. Creating Pipeline. Create OC-SVM model. Model Evaluation (train eval split by time)

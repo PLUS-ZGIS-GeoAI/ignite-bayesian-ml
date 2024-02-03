@@ -1,33 +1,40 @@
 import os
 import requests
 import numpy as np
-from datetime import datetime
 
 from config.config import GEOSPHERE_INCA_GRID_URL, GEOSPHERE_INCA_TS_URL
 from src.utils import calculate_date_of_interest_x_hours_before
 
 
-# TODO add doc strings
-def get_geosphere_data_grid(parameters, start_date, end_date, bbox, base_path_output, output_format='netcdf', filename_prefix='INCA_analysis'):
+def get_geosphere_data_grid(parameters: list, start_date: str, end_date: str, bbox: list,
+                            base_path_output: str, output_format='netcdf', filename_prefix='INCA_analysis') -> str:
+    """gets inca data for specified time rang and bounding box from Geosphere API
 
-    # Convert parameters to a comma-separated string
+    Args:
+        parameters (list): inca parameter abbreviation (e.g. RR, T2M, RH2M, UU, VV, ...)
+        start_date (str): _description_
+        end_date (str): _description_
+        bbox (list): _description_
+        base_path_output (str): _description_
+        output_format (str, optional): Defaults to 'netcdf'.
+        filename_prefix (str, optional): Defaults to 'INCA_analysis'.
+
+    Returns:
+        str: path to netcdf file is returned if request successfull, otherwise None
+    """
+
     parameters_str = '&'.join([f'parameters={param}' for param in parameters])
-
-    # Build the URL with the provided parameters
     url = f"{GEOSPHERE_INCA_GRID_URL}?{parameters_str}&start={start_date}&end={end_date}&bbox={bbox}&output_format={output_format}"
 
-    # Generate a filename based on the parameters and dates
     parameter_string_for_url = ""
     for a in parameters:
         parameter_string_for_url += f"_{a}"
 
     filename = f"{filename_prefix}_{parameter_string_for_url[1:]}_{start_date.replace(':', '').replace('-', '').replace('T', '_')}_{end_date.replace(':', '').replace('-', '').replace('T', '_')}.{output_format}"
 
-    # Make the request
     response = requests.get(url)
 
     if response.status_code == 200:
-        # Save the response content to a file
         path_to_file = os.path.join(base_path_output, filename)
         with open(path_to_file, 'wb') as file:
             file.write(response.content)
@@ -38,16 +45,27 @@ def get_geosphere_data_grid(parameters, start_date, end_date, bbox, base_path_ou
         return None
 
 
-def calculate_wind_speed(uu: float, vv: float):
-    "calculates wind speed from u and v component"
-    return np.sqrt(uu**2 + vv**2)
+# TODO rewrite function to support multiple paramters and multiple locations
 
+def get_geosphere_data_points(parameter: str, date_of_interest: str,
+                              hours: int, coordinates: tuple, output_format: str = "geojson") -> float:
+    """gets sum of specific inca paramter over specific time range and at a specific location 
 
-def get_geosphere_data_points(parameter: str, dt: str, hours: int, coordinates: tuple, output_format: str = "geojson"):
+    Args:
+        parameter (str): inca parameter abbreviation (e.g. RR, T2M, RH2M, UU, VV, ...)
+        date_of_interest (str): date of interest in following format '%Y-%m-%dT%H:%M'
+        hours (int): start date is calculated by substracting hours from date of interest
+        coordinates (tuple): (Latitude, Longitude)
+        output_format (str, optional): Format of output file. Defaults to "geojson".
 
-    start_time = calculate_date_of_interest_x_hours_before(dt, hours)
+    Returns:
+        float: sum of parameter at location over time range
+    """
 
-    url = f'{GEOSPHERE_INCA_TS_URL}?parameters={parameter}&start={start_time}&end={dt}&lat_lon={coordinates[0]},{coordinates[1]}&output_format={output_format}'
+    start_time = calculate_date_of_interest_x_hours_before(
+        date_of_interest, hours)
+
+    url = f'{GEOSPHERE_INCA_TS_URL}?parameters={parameter}&start={start_time}&end={date_of_interest}&lat_lon={coordinates[0]},{coordinates[1]}&output_format={output_format}'
 
     response = requests.get(url)
 
@@ -60,3 +78,18 @@ def get_geosphere_data_points(parameter: str, dt: str, hours: int, coordinates: 
     else:
         raise Exception(
             f'Request failed with status code {response.status_code}.')
+
+
+def calculate_wind_speed(uu: float, vv: float) -> float:
+    """calculates wind speed from uu and vv components
+
+    # TODO check what is uu and vv component and what unit is calculated wind speed
+    Args:
+        uu (float): uu component
+        vv (float): vv component
+
+    Returns:
+        float: wind speed in xxx
+    """
+    "calculates wind speed from u and v component"
+    return np.sqrt(uu**2 + vv**2)

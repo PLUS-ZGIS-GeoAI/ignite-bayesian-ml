@@ -1,7 +1,9 @@
+import os
 from typing import List
 import argparse
 import netCDF4 as nc
 import numpy as np
+import rasterio
 
 from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE, BBOX_AUSTRIA
 from src.utils import load_paths_from_yaml, replace_base_path, calculate_date_of_interest_x_hours_before
@@ -20,7 +22,8 @@ def bbox_to_str(bbox: List[float]) -> str:
     return ",".join(map(str, bbox))
 
 
-def extract_arrays_from_inca_nc(path_to_rainfall_nc: str, path_to_other_parameters_nc: str) -> tuple:
+def calculate_ffmc_from_inca_parameters(path_to_rainfall_nc: str, path_to_other_parameters_nc: str,
+                                        ffmc_0: np.array = None) -> tuple:
     """Extracts arrays from INCA NetCDF files"""
     with nc.Dataset(path_to_rainfall_nc, 'r') as nc_rainfall, nc.Dataset(path_to_other_parameters_nc, 'r') as nc_inca_param:
         rainfall_data = nc_rainfall.variables["RR"][:].sum(axis=0)
@@ -29,7 +32,9 @@ def extract_arrays_from_inca_nc(path_to_rainfall_nc: str, path_to_other_paramete
         t2m_data = nc_inca_param.variables["T2M"][:][0]
         rh2m_data = nc_inca_param.variables["RH2M"][:][0]
         wind_speed_data = calculate_wind_speed(uu_data, vv_data)
-        ffmc_0 = np.full(wind_speed_data.shape, FFMC_INITIAL_VALUE)
+
+        if ffmc_0 is None:
+            ffmc_0 = np.full(wind_speed_data.shape, FFMC_INITIAL_VALUE)
 
         calculate_ffmc_vectorized = np.vectorize(calculate_ffmc)
         ffmc_data = calculate_ffmc_vectorized(
@@ -50,31 +55,55 @@ def create_ffmc_layer_paths(paths: dict, date_str_for_file_name: str) -> tuple:
     return path_to_intermediate_ffmc_layer, path_to_ffmc_layer
 
 
+def load_ffmc_layer(paths: dict, date: str, intermediate: bool) -> np.array:
+    """load ffmc layer from a given date
+
+    Args:
+        paths (dict): dictionary of all project paths
+        date (str): Date for which ffmc layer should be retrieved in format 'YYYY-MM-DDTHH:MM'
+        intermediate (bool): If the intermediate ffmc layer (1km resolution) needs to be retrieved, set to True. Otherwise, the final ffmc layer is retrieved
+
+    Returns:
+        np.array: ffmc layer values
+    """
+
+    if intermediate:
+        path_to_ffmc_layer, _ = create_ffmc_layer_paths(paths,
+                                                        date.split("T")[0].replace("-", ""))
+    else:
+        _, path_to_ffmc_layer = create_ffmc_layer_paths(paths,
+                                                        date.split("T")[0].replace("-", ""))
+
+    if os.path.exists(path_to_ffmc_layer):
+        with rasterio.open(path_to_ffmc_layer) as src:
+            return src.read(1)
+
+
 def create_ffmc_layer(paths: dict, date_of_interest: str, bbox: List[float]) -> None:
     """Creates FFMC layer aligned with reference grid"""
+
     date_of_interest_24h_before = calculate_date_of_interest_x_hours_before(
         date_of_interest, 24)
     date_str_for_file_name = date_of_interest.split("T")[0].replace("-", "")
 
-    # Create paths to intermediate and final FFMC layers
-    path_to_intermediate_ffmc_layer, path_to_ffmc_layer = create_ffmc_layer_paths(
-        date_str_for_file_name)
+    path_to_intermediate_ffmc_layer, path_to_ffmc_layer = create_ffmc_layer_paths(paths,
+                                                                                  date_str_for_file_name)
 
-    # Retrieve data from geosphere API
     path_to_rain_netcdf = get_geosphere_data_grid(
         PARAMETER_RAINFALL, date_of_interest_24h_before, date_of_interest, bbox_to_str(bbox), paths["ffmc"]["source"])
     path_to_inca_other_netcdf = get_geosphere_data_grid(
         PARAMETERS_OTHER, date_of_interest_24h_before, date_of_interest, bbox_to_str(bbox), paths["ffmc"]["source"])
 
-    # Extract FFMC, longitude, and latitude numpy arrays
-    ffmc_arr, lon_arr, lat_arr = extract_arrays_from_inca_nc(
-        path_to_rain_netcdf, path_to_inca_other_netcdf)
+    # we need intermediate ffmc layer from previous day to calculate ffmc layer of current day
+    ffmc_prev_intermediate = load_ffmc_layer(
+        paths, date_of_interest_24h_before, intermediate=True)
 
-    # Create GeoTIFF file from numpy arrays
+    ffmc_arr, lon_arr, lat_arr = calculate_ffmc_from_inca_parameters(
+        path_to_rain_netcdf, path_to_inca_other_netcdf, ffmc_prev_intermediate)
+
     gdal_create_geotiff_from_nc(
         ffmc_arr, lon_arr, lat_arr, path_to_intermediate_ffmc_layer)
 
-    # Align and resample to reference grid
     gdal_align_and_resample(path_to_intermediate_ffmc_layer, path_to_ffmc_layer,
                             paths["reference_grid"]["raster"], RESAMPLE_ALGORITHM, 0)
 
@@ -88,11 +117,9 @@ def main():
 
     date_of_interest = args.date_of_interest
 
-    # Load paths from the YAML file
     paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
     paths = replace_base_path(paths, BASE_PATH)
 
-    # TODO: In production, implement functionality to check if FFMC layer from the previous day is available; otherwise, use the initial value.
     create_ffmc_layer(paths, date_of_interest, BBOX_AUSTRIA)
 
 
