@@ -3,7 +3,7 @@ import geopandas as gpd
 from src.utils import load_paths_from_yaml, replace_base_path
 from config.config import PROJECT_EPSG, BASE_PATH, PATH_TO_PATH_CONFIG_FILE
 from src.gdal_wrapper import gdal_rasterize_vector_layer
-from src.utils import create_density_layer_vector, calculate_length
+from src.data_preprocessing.inca_data_preprocessing import create_density_layer_vector, calculate_length
 
 # This is the name of the column of the vecctor layer that creates the feature value (e.g. road density)
 ATTRIBUTE_NAME = "density"

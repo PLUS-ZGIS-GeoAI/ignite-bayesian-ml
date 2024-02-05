@@ -1,4 +1,28 @@
 import math
+import pandas as pd
+import numpy as np
+
+
+def calculate_date_of_interest_x_hours_before(date_of_interest: str, hours: int) -> str:
+    """Calculates date x hours before the date of interest"""
+    return (pd.to_datetime(date_of_interest, format='%Y-%m-%dT%H:%M') - pd.Timedelta(hours=hours)).isoformat()
+
+
+def calculate_wind_speed(uu: float, vv: float) -> float:
+    """calculates wind speed from uu and vv components
+
+    # TODO check what is uu and vv component and what unit is calculated wind speed
+    Args:
+        uu (float): uu component
+        vv (float): vv component
+
+    Returns:
+        float: wind speed in xxx
+    """
+    "calculates wind speed from u and v component"
+    return np.sqrt(uu**2 + vv**2)
+
+# TODO create docstring
 
 
 def calculate_ffmc(ffmc0, rhum, temp, prcp, wind):

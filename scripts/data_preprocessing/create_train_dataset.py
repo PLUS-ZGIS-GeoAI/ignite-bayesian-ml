@@ -12,8 +12,8 @@ import geopandas as gpd
 
 from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE
 from src.utils import load_paths_from_yaml, replace_base_path
-from src.inca_data_extraction import get_geosphere_data_points, calculate_wind_speed
-from src.fwi_system_calculator import calculate_ffmc
+from src.data_collection.inca_data_extraction import get_geosphere_data_points
+from src.data_preprocessing.inca_data_preprocessing import calculate_wind_speed, calculate_ffmc
 
 
 def add_static_feature_from_raster(events: gpd.GeoDataFrame,

@@ -3,8 +3,9 @@ from datetime import datetime
 import geopandas as gpd
 
 from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE
-from src.inca_data_extraction import get_geosphere_data_point
-from src.utils import load_paths_from_yaml, replace_base_path, calculate_date_of_interest_x_hours_before
+from src.utils import load_paths_from_yaml, replace_base_path
+from src.data_collection.inca_data_extraction import get_geosphere_data_point
+from src.data_preprocessing.inca_data_preprocessing import calculate_date_of_interest_x_hours_before
 
 
 def transform_date(input_date):

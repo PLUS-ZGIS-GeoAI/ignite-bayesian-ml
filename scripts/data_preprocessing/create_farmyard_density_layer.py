@@ -4,7 +4,7 @@ import geopandas as gpd
 from config.config import PROJECT_EPSG, BASE_PATH, PATH_TO_PATH_CONFIG_FILE
 from src.utils import load_paths_from_yaml, replace_base_path
 from src.gdal_wrapper import gdal_rasterize_vector_layer
-from src.utils import create_density_layer_vector, calculate_area
+from src.data_preprocessing.static_layers_preprocessing import create_density_layer_vector, calculate_area
 
 
 def main():

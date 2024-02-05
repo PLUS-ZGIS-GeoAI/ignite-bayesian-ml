@@ -6,10 +6,10 @@ import numpy as np
 import rasterio
 
 from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE, BBOX_AUSTRIA
-from src.utils import load_paths_from_yaml, replace_base_path, calculate_date_of_interest_x_hours_before
-from src.inca_data_extraction import get_geosphere_data_grid, calculate_wind_speed
-from src.fwi_system_calculator import calculate_ffmc
+from src.utils import load_paths_from_yaml, replace_base_path
 from src.gdal_wrapper import gdal_align_and_resample, gdal_create_geotiff_from_nc
+from src.data_collection.inca_data_extraction import get_geosphere_data_grid
+from src.data_preprocessing.inca_data_preprocessing import calculate_wind_speed, calculate_ffmc, calculate_date_of_interest_x_hours_before
 
 RESAMPLE_ALGORITHM = "Nearest Neighbor"
 FFMC_INITIAL_VALUE = 85

@@ -1,10 +1,7 @@
 import os
 import requests
-import json
-import numpy as np
 
 from config.config import GEOSPHERE_INCA_GRID_URL, GEOSPHERE_INCA_TS_URL
-from src.utils import calculate_date_of_interest_x_hours_before
 
 
 def get_geosphere_data_grid(parameters: list, start_date: str, end_date: str, bbox: list,
@@ -49,8 +46,8 @@ def get_geosphere_data_grid(parameters: list, start_date: str, end_date: str, bb
 def get_geosphere_data_point(parameters: list,
                              start_date: str,
                              end_date: str,
-                             lon: float,
                              lat: float,
+                             lon: float,
                              output_format: str = "geojson") -> dict:
     """gets inca parameters data at a specific location and timerange from Geosphere Data API
 
@@ -64,7 +61,7 @@ def get_geosphere_data_point(parameters: list,
     Returns (dict): response from Geosphere API
     """
 
-    lat_lon = [f"{lat}, {lon}"]
+    lat_lon = [f"{lat},{lon}"]
     lat_lon_params = '&lat_lon='.join(lat_lon)
 
     parameter_string_for_url = ""
@@ -78,18 +75,3 @@ def get_geosphere_data_point(parameters: list,
     else:
         raise Exception(
             f'Request failed with status code {response.status_code}.')
-
-
-def calculate_wind_speed(uu: float, vv: float) -> float:
-    """calculates wind speed from uu and vv components
-
-    # TODO check what is uu and vv component and what unit is calculated wind speed
-    Args:
-        uu (float): uu component
-        vv (float): vv component
-
-    Returns:
-        float: wind speed in xxx
-    """
-    "calculates wind speed from u and v component"
-    return np.sqrt(uu**2 + vv**2)
