@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 import numpy as np
 
 from config.config import GEOSPHERE_INCA_GRID_URL, GEOSPHERE_INCA_TS_URL
@@ -45,36 +46,35 @@ def get_geosphere_data_grid(parameters: list, start_date: str, end_date: str, bb
         return None
 
 
-# TODO rewrite function to support multiple paramters and multiple locations
-
-def get_geosphere_data_points(parameter: str, date_of_interest: str,
-                              hours: int, coordinates: tuple, output_format: str = "geojson") -> float:
-    """gets sum of specific inca paramter over specific time range and at a specific location 
+def get_geosphere_data_point(parameters: list,
+                             start_date: str,
+                             end_date: str,
+                             lon: float,
+                             lat: float,
+                             output_format: str = "geojson") -> dict:
+    """gets inca parameters data at a specific location and timerange from Geosphere Data API
 
     Args:
-        parameter (str): inca parameter abbreviation (e.g. RR, T2M, RH2M, UU, VV, ...)
-        date_of_interest (str): date of interest in following format '%Y-%m-%dT%H:%M'
-        hours (int): start date is calculated by substracting hours from date of interest
-        coordinates (tuple): (Latitude, Longitude)
-        output_format (str, optional): Format of output file. Defaults to "geojson".
+        parameters (list): Inca parameters of interest. E.g. ["T2M", "RR"].
+        start_date (str): Start of daterange for data retrieval. E.g. '2021-08-01T00:00'.
+        end_date (str): End of daterange for data retrieval. E.g. '2021-08-01T00:00'.
+        lat_lon (list, optional): _description_. Defaults to ['48.206248, 16.367569'].
+        output_format (str, optional): Output format. Defaults to "geojson".
 
-    Returns:
-        float: sum of parameter at location over time range
+    Returns (dict): response from Geosphere API
     """
 
-    start_time = calculate_date_of_interest_x_hours_before(
-        date_of_interest, hours)
+    lat_lon = [f"{lat}, {lon}"]
+    lat_lon_params = '&lat_lon='.join(lat_lon)
 
-    url = f'{GEOSPHERE_INCA_TS_URL}?parameters={parameter}&start={start_time}&end={date_of_interest}&lat_lon={coordinates[0]},{coordinates[1]}&output_format={output_format}'
+    parameter_string_for_url = ""
+    for a in parameters:
+        parameter_string_for_url += f"parameters={a}&"
 
+    url = f'{GEOSPHERE_INCA_TS_URL}?{parameter_string_for_url[:-1]}&start={start_date}&end={end_date}&lat_lon={lat_lon_params}&output_format={output_format}'
     response = requests.get(url)
-
     if response.status_code == 200:
-        data = response.json()
-        param_sum = np.sum(data["features"][0]["properties"]
-                           ["parameters"][parameter]["data"])
-        return param_sum
-
+        return response.json()
     else:
         raise Exception(
             f'Request failed with status code {response.status_code}.')
