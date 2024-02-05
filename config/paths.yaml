@@ -67,14 +67,9 @@ population_layers:
 nuts_data: "{base_path}/data/raw/EU_NUTS/NUTS_RG_01M_2021_3035.shp"
 
 inca:
-  training_data:
-    T2M: "{base_path}/data/raw/GEOSPHERE_Inca_data/training_data/T2M.json"
-    RR: "{base_path}/data/raw/GEOSPHERE_Inca_data/training_data/RR.json"
-    RH2M: "{base_path}/data/raw/GEOSPHERE_Inca_data/training_data/RH2M.json"
-    UU: "{base_path}/data/raw/GEOSPHERE_Inca_data/training_data/UU.json"
-    VV: "{base_path}/data/raw/GEOSPHERE_Inca_data/training_data/VV.json"
+  training_data: "{base_path}/data/raw/GEOSPHERE_Inca_data/training_data/training_data_after_2012.txt"
 
 ffmc:
-  source: "{base_path}/data/raw/GEOSPHERE_Inca_data/"
+  source: "{base_path}/data/raw/GEOSPHERE_INCA_data"
   intermediate: "{base_path}/data/processed/ffmc_data/ffmc_intermediate_layer"
   final: "{base_path}/data/processed/ffmc_data/ffmc_layer"

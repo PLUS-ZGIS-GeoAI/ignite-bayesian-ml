@@ -89,6 +89,7 @@ def create_ffmc_layer(paths: dict, date_of_interest: str, bbox: List[float]) -> 
     path_to_intermediate_ffmc_layer, path_to_ffmc_layer = create_ffmc_layer_paths(paths,
                                                                                   date_str_for_file_name)
 
+    # TODO maybe change paths here
     path_to_rain_netcdf = get_geosphere_data_grid(
         PARAMETER_RAINFALL, date_of_interest_24h_before, date_of_interest, bbox_to_str(bbox), paths["ffmc"]["source"])
     path_to_inca_other_netcdf = get_geosphere_data_grid(
