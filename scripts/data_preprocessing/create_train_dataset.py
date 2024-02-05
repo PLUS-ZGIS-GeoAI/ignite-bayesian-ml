@@ -4,16 +4,20 @@ utilizing the static feature layers and the ffmc.
 '''
 
 import os
-from datetime import datetime
+import re
+import json
 import numpy as np
 import rasterio
+import shapely
 import pandas as pd
 import geopandas as gpd
 
 from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE
 from src.utils import load_paths_from_yaml, replace_base_path
-from src.data_collection.inca_data_extraction import get_geosphere_data_points
 from src.data_preprocessing.inca_data_preprocessing import calculate_wind_speed, calculate_ffmc
+
+
+INITIAL_FFMC_VALUE = 85
 
 
 def add_static_feature_from_raster(events: gpd.GeoDataFrame,
@@ -79,43 +83,94 @@ def add_static_features(event_data: gpd.GeoDataFrame, feature_info: dict) -> gpd
     return event_data
 
 
-def add_ffmc_feature(events: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """adds a column called FFMC, which contains the Fine Fuel Moisture Code, calculated from Rain, Temp, Humidity and Wind Speed, retrieved from Geosphere API
+def convert_inca_data_from_json_to_dataframe(path_to_inca_data: str) -> gpd.GeoDataFrame:
+    """Convert the raw inca data, retrieved from Geosphere Data API to GeoDataFrame. 
+    For rainfall the sum of full time range is calculated. For the other parameters only the last value is taken. 
 
     Args:
-        events (gpd.GeoDataFrame): GeoDataFrame containing the date and location of the fire and non-fire events
+        path_to_inca_data (str): Path to raw inca data
 
     Returns:
-        gpd.GeoDataFrame: fire and non-fire events with new column for feature values
+        gpd.GeoDataFrame: GeoDataFrame with epsg:4326
     """
 
-    data_copy = events.copy()
-    data_copy.to_crs("EPSG:4326", inplace=True)
+    data_list = []
 
-    data_copy["UU"] = data_copy.apply(lambda row:  get_geosphere_data_points(
-        "UU", row["date"], 0, (row["geometry"].y, row["geometry"].x)), axis=1)
-    data_copy["VV"] = data_copy.apply(lambda row:  get_geosphere_data_points(
-        "VV", row["date"], 0, (row["geometry"].y, row["geometry"].x)), axis=1)
-    data_copy["T2M"] = data_copy.apply(lambda row:  get_geosphere_data_points(
-        "T2M", row["date"], 0, (row["geometry"].y, row["geometry"].x)), axis=1)
-    data_copy["RH2M"] = data_copy.apply(lambda row:  get_geosphere_data_points(
-        "RH2M", row["date"], 0, (row["geometry"].y, row["geometry"].x)), axis=1)
-    data_copy["RR"] = data_copy.apply(lambda row:  get_geosphere_data_points(
-        "RR", row["date"], 24, (row["geometry"].y, row["geometry"].x)), axis=1)
-    data_copy["windspeed"] = data_copy.apply(
+    with open(path_to_inca_data, 'r') as file:
+        for line in file:
+            # Use regular expression to extract ID and JSON content
+            match = re.match(r'(\d+)(\{.+})', line)
+            if match:
+                numeric_id = int(match.group(1))
+                json_data = json.loads(match.group(2))
+
+                last_timestamp = json_data["timestamps"][-1]
+                last_T2M = json_data["features"][0]["properties"]["parameters"]["T2M"]["data"][-1]
+                last_RH2M = json_data["features"][0]["properties"]["parameters"]["RH2M"]["data"][-1]
+                last_UU = json_data["features"][0]["properties"]["parameters"]["UU"]["data"][-1]
+                last_VV = json_data["features"][0]["properties"]["parameters"]["VV"]["data"][-1]
+
+                # Chechking for None values here is neccessary - because None's appear in RR
+                rr_data = json_data["features"][0]["properties"]["parameters"]["RR"]["data"]
+                if any(val is None for val in rr_data):
+                    sum_RR = None
+                else:
+                    sum_RR = np.sum(rr_data)
+
+                coordinates = json_data["features"][0]["geometry"]["coordinates"]
+                point = shapely.Point(coordinates)
+
+                data_list.append({
+                    "ID": numeric_id,
+                    "Timestamp": last_timestamp,
+                    "T2M": last_T2M,
+                    "RH2M": last_RH2M,
+                    "UU": last_UU,
+                    "VV": last_VV,
+                    "RR_sum_24h": sum_RR,
+                    "geometry": point
+                })
+
+    gdf = gpd.GeoDataFrame(data_list, geometry='geometry', crs="EPSG:4326")
+    return gdf
+
+
+def add_ffmc_feature(event_data: gpd.GeoDataFrame, path_to_inca_data: str) -> gpd.GeoDataFrame:
+    """add column named ffmc to training dataframe
+
+    Args:
+        event_data (gpd.GeoDataFrame): dataframe containing at least a column called index (to identify which rows of event_data correspond to which inca_data rows)
+        path_to_inca_data (str): path to file with raw inca data
+
+    Returns:
+        (gpd.GeoDataFrame): event_data with additional column called ffmc, with epsg=31287
+    """
+
+    inca_data_gdf = convert_inca_data_from_json_to_dataframe(path_to_inca_data)
+    inca_data_gdf.dropna(inplace=True)
+
+    inca_data_gdf["windspeed"] = inca_data_gdf.apply(
         lambda row: calculate_wind_speed(row["UU"], row["VV"]), axis=1)
-    data_copy["ffmc"] = data_copy.apply(lambda row:  calculate_ffmc(
-        85, row["RH2M"], row["T2M"], row["RR"], row["windspeed"]), axis=1)
+    inca_data_gdf["ffmc"] = inca_data_gdf.apply(lambda row:  calculate_ffmc(
+        INITIAL_FFMC_VALUE, row["RH2M"], row["T2M"], row["RR_sum_24h"], row["windspeed"]), axis=1)
 
-    events["ffmc"] = data_copy["ffmc"]
-    return events
+    train_data = pd.merge(event_data, inca_data_gdf,
+                          left_on="index", right_on="ID")
+    train_data = train_data.loc[:, [
+        "date", "Pufferradi", "fire", "ffmc", "geometry_x"]]
+    train_data.rename(columns={"geometry_x": "geometry"}, inplace=True)
+
+    return gpd.GeoDataFrame(
+        train_data, geometry="geometry", crs="EPSG:31287")
 
 
 def main():
 
-    # Load paths from the YAML file
     paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
     paths = replace_base_path(paths, BASE_PATH)
+
+    event_data = gpd.read_file(paths["fire_events"]["final"])
+    event_data.reset_index(inplace=True)
 
     feature_info = [
         ("pop_2006", paths["population_layers"]["2006"]["final"]),
@@ -132,22 +187,9 @@ def main():
         ("foresttype", paths["forest_type"]["final"])
     ]
 
-    def transform_date(input_date):
-        """transforms date from "%m/%d/%Y" into '%Y-%m-%dT12:00' format"""
-        date_object = datetime.strptime(input_date, "%m/%d/%Y")
-        output_date = date_object.strftime('%Y-%m-%dT12:00')
-        return str(output_date)
-
-    # FIXME use only subset of data - as Geosphere API only provides values up 2011/2012
-    event_data = gpd.read_file(paths["fire_events"]["final"])
-    event_data = event_data[event_data["year"].astype("int") >= 2012]
-    # this date conversion is neccessary so that get_geosphere_data_points can be applied to the dataframe
-    event_data["date"] = event_data["date"].apply(transform_date)
-
-    event_data = add_static_features(event_data, feature_info)
-    event_data = add_ffmc_feature(event_data)
-
-    event_data.to_file(paths["training_data"]["subset"])
+    train_data = add_static_features(event_data, feature_info)
+    train_data = add_ffmc_feature(train_data)
+    train_data.to_file(paths["training_data"]["subset"])
 
 
 if __name__ == "__main__":
