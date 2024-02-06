@@ -1,4 +1,5 @@
-base_path: "C:/Users/David/Documents/ZGIS/Nextcloud_MyFiles/Projects/IGNITE"
+#base_path: "C:/Users/David/Documents/ZGIS/Nextcloud_MyFiles/Projects/IGNITE"
+base_path: "C:/Users/b1105474/OneDrive - Universität Salzburg/PR_IGNITE/IGNITE_david"
 
 reference_grid:
   raster: "{base_path}/data/processed/reference_grid/INCA_ref_raster_since_2013_100m.tif"
