@@ -110,8 +110,11 @@ Last Status: trained first pymc model for ffmc asjustment.
 - Make those results sense?
 - Make prediction on test data.
 - How to best visualize results?
+- How to derive adjustment values from betas?
+- Evaluate events from Mortimer
 - Think about how this should be modeled best.
 - Train and evaluate baseline model.
+- Don't forget documentation
 
 # TODO create full training dataset and save
 
