@@ -25,7 +25,7 @@ def main():
         params = ["T2M", "RR", "UU", "VV", "RH2M"]
 
         # TODO dataframe is sliced at certain location because only a number of requests can be made to Geosphere Data API
-        for i, row in event_data_subset.loc[1653:].iterrows():
+        for i, row in event_data_subset.iterrows():
             start_date = calculate_date_of_interest_x_hours_before(
                 row.date, hours=24)
             data = get_geosphere_data_point(
