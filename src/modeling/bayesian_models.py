@@ -47,3 +47,15 @@ def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model
+
+
+def create_st_blr(X: pd.DataFrame, y: pd.Series, coord: dict) -> pm.Model:
+    """function creates bayesian logistic regression with spatio-temporal subgroups for uncertainty quantification paper
+    Args:
+        X (pd.DataFrame): _description_
+        y (pd.Series): _description_
+        coord (dict): _description_
+    Returns:
+        pm.Model: _description_
+    """
+    return None
