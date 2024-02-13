@@ -120,7 +120,7 @@ Last Status: trained first pymc model for ffmc asjustment.
 
 ## Personal TODOs
 
-# TODO Notebook for model training. Creating Pipeline. Create OC-SVM model. Model Evaluation (train eval split by time)
+# TODO Notebook for model training. Create OC-SVM model. Model Evaluation (train eval split by time)
 
 # TODO Create script for inference data creation
 

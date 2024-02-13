@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import unittest
 from config.config import PATH_TO_PATH_CONFIG_FILE, BASE_PATH
@@ -7,6 +8,9 @@ from src.gdal_wrapper import gdal_get_raster_info
 
 paths = load_paths_from_yaml(PATH_TO_PATH_CONFIG_FILE)
 paths = replace_base_path(paths, BASE_PATH)
+
+print(os.path.exists(paths["reference_grid"]["raster"]))
+
 
 REF_SPATIAL_REF, REF_PIXEL_SIZE, REF_EXTENT, REF_SHAPE, REF_DTYPE = gdal_get_raster_info(
     paths["reference_grid"]["raster"])
