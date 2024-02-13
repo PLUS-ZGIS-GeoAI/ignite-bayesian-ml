@@ -6,8 +6,7 @@ fire_events:
   source: "{base_path}/data/raw/BOKU_Fire_Ignitions/boku_wildfire_ignitions.shp"
   final: "{base_path}/data/processed/fire_data/fire_data.shp"
 
-training_data:
-  subset: "{base_path}/data/final/training_data/training_data_subset/training_data_subset.shp"
+training_data: "{base_path}/data/final/training_data/training_data.shp"
 
 forest_type:
   source: "{base_path}/data/raw/BWF_forest_type/forest_type_merged.tif"
