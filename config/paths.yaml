@@ -71,3 +71,6 @@ ffmc:
   source: "{base_path}/data/raw/GEOSPHERE_INCA_data"
   intermediate: "{base_path}/data/processed/ffmc_data/ffmc_intermediate_layer"
   final: "{base_path}/data/processed/ffmc_data/ffmc_layer"
+
+ffmc_events:
+  source: "{base_path}/data/raw/BOKU_MET_ffmc/fire_data_ffmc_fwi_2003t2021.csv"
