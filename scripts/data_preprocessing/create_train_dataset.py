@@ -154,12 +154,8 @@ def add_ffmc_feature(event_data: gpd.GeoDataFrame, path_to_inca_data: str) -> gp
     inca_data_gdf["ffmc"] = inca_data_gdf.apply(lambda row:  calculate_ffmc(
         INITIAL_FFMC_VALUE, row["RH2M"], row["T2M"], row["RR_sum_24h"], row["windspeed"]), axis=1)
 
-    train_data = pd.merge(event_data, inca_data_gdf,
+    train_data = pd.merge(event_data, inca_data_gdf.loc[:, ["ID", "ffmc"]],
                           left_on="index", right_on="ID")
-    train_data = train_data.loc[:, [
-        "date", "Pufferradi", "fire", "ffmc", "geometry_x"]]
-    train_data.rename(columns={"geometry_x": "geometry"}, inplace=True)
-
     return gpd.GeoDataFrame(
         train_data, geometry="geometry", crs="EPSG:31287")
 
@@ -188,7 +184,7 @@ def main():
     ]
 
     train_data = add_static_features(event_data, feature_info)
-    train_data = add_ffmc_feature(train_data)
+    train_data = add_ffmc_feature(train_data, paths["inca"]["training_data"])
     train_data.to_file(paths["training_data"]["subset"])
 
 
