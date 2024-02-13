@@ -35,7 +35,7 @@ def add_static_feature_from_raster(events: gpd.GeoDataFrame,
                            src.profile["nodata"], feature_name] = np.nan
 
     return gpd.GeoDataFrame(
-        events_updated, geometry="geometry", crs="EPSG:31287")
+        events_updated, geometry="geometry", crs="EPSG:31287")  # type: ignore
 
 
 def get_nearest_pop_value(row) -> float:
@@ -72,7 +72,7 @@ def add_static_features(event_data: gpd.GeoDataFrame, feature_info: list) -> gpd
     event_data['pop_dens'] = event_data.apply(
         get_nearest_pop_value, axis=1)
     event_data = event_data.drop(
-        ["pop_2006", "pop_2011", "pop_2018", "pop_2021"], axis=1)
+        ["pop_2006", "pop_2011", "pop_2018", "pop_2021"], axis=1)  # type: ignore
 
     return event_data
 
@@ -92,7 +92,7 @@ def add_ffmc_feature(event_data: gpd.GeoDataFrame, path_to_ffmc_data: str) -> gp
     ffmc_event_df = pd.merge(event_data, ffmc_df.loc[:, [
         "X", "ffmc"]], left_on="index", right_on="X")
     ffmc_event_df.drop(columns=["X"], inplace=True)
-    return ffmc_event_df
+    return ffmc_event_df  # type: ignore
 
 
 def main():

@@ -16,7 +16,7 @@ def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
         pm.Model: bayesian model, which can be used for analysis and prediction
     """
 
-    with pm.Model(coords=coords) as model:
+    with pm.Model(coords=coords) as model:  # type: ignore
 
         aspect_groups_idx = pm.MutableData("aspect_groups_idx", X["aspect"])
         treetype_groups_idx = pm.MutableData(
@@ -40,7 +40,7 @@ def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
         mean = intercept + \
             beta_ffmc[aspect_groups_idx, treetype_groups_idx] * ffmc + \
             error_var
-        p = pm.Deterministic('p', pm.math.invlogit(mean))
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
 
         # Bernoulli random vector with probability of fire = 1
         # given by sigmoid function and actual data as observed
@@ -63,11 +63,12 @@ def create_st_blr(X: pd.DataFrame,
         pm.Model: bayesian model, which can be used for analysis and prediction
     """
 
-    with pm.Model(coords=coords) as model:
+    with pm.Model(coords=coords) as model:  # type: ignore
 
+        # data containers
         elevation = pm.MutableData("elevation", X.elevation)
         slope = pm.MutableData("slope", X.slope)
-        aspect = pm.MutableData("aspect", X.aspect)
+        aspect = pm.MutableData("aspect", X.aspect_encoded)
         forestroad_density = pm.MutableData(
             "forestroad_density", X.forestroad_density)
         railway_density = pm.MutableData("railway_density", X.railway_density)
@@ -75,10 +76,9 @@ def create_st_blr(X: pd.DataFrame,
             "hikingtrail_density", X.hikingtrail_density)
         farmyard_density = pm.MutableData(
             "farmyard_density", X.farmyard_density)
-        population = pm.MutableData("population", X.population)
+        population = pm.MutableData("population", X.population_density)
         forest_type = pm.MutableData("forest_type", X.forest_type)
         ffmc = pm.MutableData("ffmc", X.ffmc)
-
         fire_labels = pm.MutableData("fire", y)
         spatial_groups_idx = pm.MutableData(
             "spatial_groups_idx", X[spatial_grouping_variable])
@@ -87,25 +87,25 @@ def create_st_blr(X: pd.DataFrame,
 
         # Hyperpriors of features
         mu_b1, sigma_b1 = pm.Cauchy(
-            "mu_b1", mu=0.0, sigma=1.0), pm.Exponential("sigma_b1", 1)
+            "mu_b1", 0.0, 1.0), pm.Exponential("sigma_b1", 1)
         mu_b2, sigma_b2 = pm.Cauchy(
-            "mu_b2", mu=0.0, sigma=1.0), pm.Exponential("sigma_b2", 1)
+            "mu_b2", 0.0, 1.0), pm.Exponential("sigma_b2", 1)
         mu_b3, sigma_b3 = pm.Cauchy(
-            "mu_b3", mu=0.0, sigma=1.0), pm.Exponential("sigma_b3", 1)
+            "mu_b3", 0.0, 1.0), pm.Exponential("sigma_b3", 1)
         mu_b4, sigma_b4 = pm.Cauchy(
-            "mu_b4", mu=0.0, sigma=1.0), pm.Exponential("sigma_b4", 1)
+            "mu_b4", 0.0, 1.0), pm.Exponential("sigma_b4", 1)
         mu_b5, sigma_b5 = pm.Cauchy(
-            "mu_b5", mu=0.0, sigma=1.0), pm.Exponential("sigma_b5", 1)
+            "mu_b5", 0.0, 1.0), pm.Exponential("sigma_b5", 1)
         mu_b6, sigma_b6 = pm.Cauchy(
-            "mu_b6", mu=0.0, sigma=1.0), pm.Exponential("sigma_b6", 1)
+            "mu_b6", 0.0, 1.0), pm.Exponential("sigma_b6", 1)
         mu_b7, sigma_b7 = pm.Cauchy(
-            "mu_b7", mu=0.0, sigma=1.0), pm.Exponential("sigma_b7", 1)
+            "mu_b7", 0.0, 1.0), pm.Exponential("sigma_b7", 1)
         mu_b8, sigma_b8 = pm.Cauchy(
-            "mu_b8", mu=0.0, sigma=1.0), pm.Exponential("sigma_b8", 1)
+            "mu_b8", 0.0, 1.0), pm.Exponential("sigma_b8", 1)
         mu_b9, sigma_b9 = pm.Cauchy(
-            "mu_b9", mu=0.0, sigma=1.0), pm.Exponential("sigma_b9", 1)
+            "mu_b9", 0.0, 1.0), pm.Exponential("sigma_b9", 1)
         mu_b10, sigma_b10 = pm.Cauchy(
-            "mu_b10", mu=0.0, sigma=1.0), pm.Exponential("sigma_b10", 1)
+            "mu_b10", 0.0, 1.0), pm.Exponential("sigma_b10", 1)
 
         # specify priors for the features
         intercept = pm.Cauchy('intercept', 0, 1)
@@ -115,23 +115,36 @@ def create_st_blr(X: pd.DataFrame,
             "spatial_groups", "temporal_groups"))
         beta_aspect = pm.Cauchy('beta_aspect', mu_b3, sigma_b3, dims=(
             "aspect_classes", "spatial_groups", "temporal_groups"))
-
-        # TODO finalize model
-
+        beta_forestroad_density = pm.Cauchy('beta_forestroad_density', mu_b4, sigma_b4, dims=(
+            "spatial_groups", "temporal_groups"))
+        beta_railway_density = pm.Cauchy('beta_railway_density', mu_b5, sigma_b5, dims=(
+            "spatial_groups", "temporal_groups"))
+        beta_hikingtrail_density = pm.Cauchy('beta_hikingtrail_density', mu_b6, sigma_b6, dims=(
+            "spatial_groups", "temporal_groups"))
+        beta_farmyard_density = pm.Cauchy('beta_farmyard_density', mu_b7, sigma_b7, dims=(
+            "spatial_groups", "temporal_groups"))
+        beta_population = pm.Cauchy('beta_population', mu_b8, sigma_b8, dims=(
+            "spatial_groups", "temporal_groups"))
+        beta_forest_type = pm.Cauchy('beta_forest_type', mu_b9, sigma_b9, dims=(
+            "forest_type_classes", "spatial_groups", "temporal_groups"))
+        beta_ffmc = pm.Cauchy('beta_ffmc', mu_b10, sigma_b10, dims=(
+            "spatial_groups", "temporal_groups"))
         error_var = pm.Cauchy("error_beta", 0, 1)
 
-        # Transform random variables into vector of probabilities p(y_i=1)
-        # according to logistic regression model specification.
         mean = intercept + \
-            beta_1[exposition, spatial_groups_idx, temporal_groups_idx] + \
-            beta_2[tree_type, spatial_groups_idx, temporal_groups_idx] + \
-            beta_3[canopy_closure, spatial_groups_idx, temporal_groups_idx] + \
-            beta_4[spatial_groups_idx, temporal_groups_idx] * ffmc + \
+            beta_elevation[spatial_groups_idx, temporal_groups_idx] * elevation + \
+            beta_slope[spatial_groups_idx, temporal_groups_idx] * slope + \
+            beta_aspect[aspect, spatial_groups_idx, temporal_groups_idx] + \
+            beta_forestroad_density[spatial_groups_idx, temporal_groups_idx] * forestroad_density + \
+            beta_railway_density[spatial_groups_idx, temporal_groups_idx] * railway_density + \
+            beta_hikingtrail_density[spatial_groups_idx, temporal_groups_idx] * hikingtrail_density + \
+            beta_farmyard_density[spatial_groups_idx, temporal_groups_idx] * farmyard_density + \
+            beta_population[spatial_groups_idx, temporal_groups_idx] * population + \
+            beta_forest_type[forest_type, spatial_groups_idx, temporal_groups_idx] + \
+            beta_ffmc[spatial_groups_idx, temporal_groups_idx] * ffmc + \
             error_var
-        p = pm.Deterministic('p', pm.math.invlogit(mean))
 
-        # Bernoulli random vector with probability of fire = 1
-        # given by sigmoid function and actual data as observed
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model
