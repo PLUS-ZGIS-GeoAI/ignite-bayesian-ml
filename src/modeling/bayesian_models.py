@@ -56,11 +56,11 @@ def create_st_blr(X: pd.DataFrame,
                   temporal_grouping_variable: str) -> pm.Model:
     """function creates bayesian logistic regression with spatio-temporal subgroups for uncertainty quantification paper
     Args:
-        X (pd.DataFrame): _description_
-        y (pd.Series): _description_
-        coord (dict): _description_
+        X (pd.DataFrame): features
+        y (pd.Series): labels
+        coord (dict): key is name of grouping variable or categorical feature and values are unique classes
     Returns:
-        pm.Model: _description_
+        pm.Model: bayesian model, which can be used for analysis and prediction
     """
 
     with pm.Model(coords=coords) as model:
