@@ -148,3 +148,67 @@ def create_st_blr(X: pd.DataFrame,
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model
+
+
+def create_blr(X: pd.DataFrame,
+               y: pd.Series,
+               coords: dict) -> pm.Model:
+    """function creates bayesian logistic regression for uncertainty quantification paper
+    Args:
+        X (pd.DataFrame): features
+        y (pd.Series): labels
+        coord (dict): key is name of grouping variable or categorical feature and values are unique classes
+    Returns:
+        pm.Model: bayesian model, which can be used for analysis and prediction
+    """
+
+    with pm.Model(coords=coords) as model:  # type: ignore
+
+        # data containers
+        elevation = pm.MutableData("elevation", X.elevation)
+        slope = pm.MutableData("slope", X.slope)
+        aspect = pm.MutableData("aspect", X.aspect_encoded)
+        forestroad_density = pm.MutableData(
+            "forestroad_density", X.forestroad_density)
+        railway_density = pm.MutableData("railway_density", X.railway_density)
+        hikingtrail_density = pm.MutableData(
+            "hikingtrail_density", X.hikingtrail_density)
+        farmyard_density = pm.MutableData(
+            "farmyard_density", X.farmyard_density)
+        population = pm.MutableData("population", X.population_density)
+        forest_type = pm.MutableData("forest_type", X.forest_type)
+        ffmc = pm.MutableData("ffmc", X.ffmc)
+        fire_labels = pm.MutableData("fire", y)
+
+        # specify priors for the features
+        intercept = pm.Cauchy('intercept', 0, 1)
+        beta_elevation = pm.Cauchy('beta_elevation', 0, 1)
+        beta_slope = pm.Cauchy('beta_slope', 0, 1)
+        beta_aspect = pm.Cauchy('beta_aspect', 0, 1, dims=("aspect_classes"))
+        beta_forestroad_density = pm.Cauchy('beta_forestroad_density', 0, 1)
+        beta_railway_density = pm.Cauchy('beta_railway_density', 0, 1)
+        beta_hikingtrail_density = pm.Cauchy('beta_hikingtrail_density', 0, 1)
+        beta_farmyard_density = pm.Cauchy('beta_farmyard_density', 0, 1)
+        beta_population = pm.Cauchy('beta_population', 0, 1)
+        beta_forest_type = pm.Cauchy(
+            'beta_forest_type', 0, 1, dims=("forest_type_classes"))
+        beta_ffmc = pm.Cauchy('beta_ffmc', 0, 1)
+        error_var = pm.Cauchy("error_beta", 0, 1)
+
+        mean = intercept + \
+            beta_elevation * elevation + \
+            beta_slope * slope + \
+            beta_aspect[aspect] + \
+            beta_forestroad_density * forestroad_density + \
+            beta_railway_density * railway_density + \
+            beta_hikingtrail_density * hikingtrail_density + \
+            beta_farmyard_density * farmyard_density + \
+            beta_population * population + \
+            beta_forest_type[forest_type] + \
+            beta_ffmc * ffmc + \
+            error_var
+
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
+        y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
+
+        return model

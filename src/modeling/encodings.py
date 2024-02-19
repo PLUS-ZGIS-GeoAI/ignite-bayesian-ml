@@ -67,12 +67,26 @@ nuts_lvl_3_encoding = {
 }
 
 
-def encode_nuts_id(nuts_id: str, mapping: dict):
+naturraumregionen_encoding = {
+    "Pannonische Flach- und Hügelländer": 0,
+    "Südöstliches Alpenvorland": 1,
+    "Nördliches Granit- und Gneishochland": 2,
+    "Nördliches Alpenvorland": 3,
+    "Östliche Nordalpen": 4,
+    "Zentralalpen - südöstlicher Teil": 5,
+    "Klagenfurter Becken": 6,
+    "Südalpen": 7,
+    "Zentralalpen - zentraler Teil": 8,
+    "Mittlere und westliche Nordalpen": 9
+}
+
+
+def apply_encoding(original_value: str, mapping: dict):
     """encodes nuts id to numerical id
 
     Args:
-        nuts_id (str): official id of nuts area
-        mapping (dict): defines mapping between nuts id and numerical id
+        original_value (str)
+        mapping (dict): defines mapping between original value and encoded value
     """
 
-    return mapping[nuts_id]
+    return mapping[original_value]
