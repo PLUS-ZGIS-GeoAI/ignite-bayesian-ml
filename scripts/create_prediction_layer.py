@@ -1,5 +1,3 @@
-import rasterio
-
 from config.config import BASE_PATH, PATH_TO_PATH_CONFIG_FILE
 from src.utils import load_paths_from_yaml, replace_base_path
 
@@ -10,10 +8,7 @@ if __name__ == "__main__":
     paths = replace_base_path(paths, BASE_PATH)
 
     static_features_info = [
-        ("pop_2006", paths["population_layers"]["2006"]["final"]),
-        ("pop_2011", paths["population_layers"]["2011"]["final"]),
-        ("pop_2018", paths["population_layers"]["2018"]["final"]),
-        ("pop_2021", paths["population_layers"]["2021"]["final"]),
+        ("population", paths["population_layers"]["2021"]["final"]),
         ("farmyard_ds", paths["farmyard_density"]["final"]),
         ("hiking_ds", paths["roads"]["hikingtrails"]["final"]),
         ("forest_ds", paths["roads"]["forestroads"]["final"]),

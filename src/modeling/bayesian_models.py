@@ -1,5 +1,6 @@
 import pandas as pd
 import pymc as pm
+import numpy as np
 
 
 def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
@@ -212,3 +213,57 @@ def create_blr(X: pd.DataFrame,
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model
+
+
+def create_bnn(X: np.array,
+               y: np.array,
+               random_seed: int = 42):
+
+    rng = np.random.default_rng(random_seed)
+    n_hidden = 2
+
+    # Initialize random weights between each layer
+    init_1 = rng.standard_normal(size=(X.shape[1], n_hidden)).astype("float32")
+    init_2 = rng.standard_normal(size=(n_hidden, n_hidden)).astype("float32")
+    init_out = rng.standard_normal(size=n_hidden).astype("float32")
+
+    coords = {
+        "hidden_layer_1": np.arange(n_hidden),
+        "hidden_layer_2": np.arange(n_hidden),
+        "train_cols": np.arange(X.shape[1]),
+    }
+    with pm.Model(coords=coords) as bayesian_neural_network:  # type: ignore
+        ann_input = pm.Data("ann_input", X, mutable=True,
+                            dims=("obs_id", "train_cols"))
+        ann_output = pm.Data("ann_output", y, mutable=True, dims="obs_id")
+
+        # Weights from input to hidden layer
+        weights_in_1 = pm.Normal(
+            "w_in_1", 0, sigma=1, initval=init_1, dims=("train_cols", "hidden_layer_1")
+        )
+
+        # Weights from 1st to 2nd layer
+        weights_1_2 = pm.Normal(
+            "w_1_2", 0, sigma=1, initval=init_2, dims=("hidden_layer_1", "hidden_layer_2")
+        )
+
+        # Weights from hidden layer to output
+        weights_2_out = pm.Normal(
+            "w_2_out", 0, sigma=1, initval=init_out, dims="hidden_layer_2")
+
+        # Build neural-network using tanh activation function
+        act_1 = pm.math.tanh(pm.math.dot(ann_input, weights_in_1))
+        act_2 = pm.math.tanh(pm.math.dot(act_1, weights_1_2))
+        act_out = pm.math.sigmoid(pm.math.dot(act_2, weights_2_out))
+
+        act_out = pm.Deterministic("p", act_out)
+
+        # Binary classification -> Bernoulli likelihood
+        out = pm.Bernoulli(
+            "y_pred",
+            act_out,
+            observed=ann_output,
+            total_size=y.shape[0],  # IMPORTANT for minibatches
+            dims="obs_id",
+        )
+    return bayesian_neural_network

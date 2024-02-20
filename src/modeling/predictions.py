@@ -99,3 +99,29 @@ class BinaryClassification(BayesianPrediction):
         df["hdi_width"] = hdi_width
         df["binary_entropy"] = binary_entropy
         return df
+
+
+class BinaryClassificationBNN(BinaryClassification):
+
+    def __init__(self, model: object,
+                 trace: object,
+                 x_new: np.array,
+                 seed: int,
+                 y_var_name: str,
+                 p_var_name: str):
+        super().__init__(model, trace, x_new, seed, y_var_name, p_var_name)
+
+    def extend_trace(self):
+        """
+        add posterior predictive samples to trace
+        """
+
+        trace_new = self.trace.copy()
+
+        with self.model:
+            pm.set_data(new_data={"ann_input": self.x_new})
+            ppc = pm.sample_posterior_predictive(
+                trace_new, var_names=self.var_names_pred, random_seed=0)
+            trace_new.extend(ppc)
+
+        self.trace_pred = trace_new
