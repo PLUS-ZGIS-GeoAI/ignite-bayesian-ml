@@ -2,4 +2,14 @@
 
 #### TODOs
 
-- Last status: working on prediction notebook - but calculating predictions for all cells would currently take 2 days. Working on a way to select target areas.
+- Last thoughts:
+
+The target is to communicate uncertainty for transparency:
+-	How can we communicate uncertainty in an understandable way?
+-	How categorize p-values in danger classes?
+-	How to categorize hdi into uncertainty classes?
+
+But also:
+- I should log transform some features (e.g. poulation) before training
+
+

@@ -61,7 +61,9 @@ population_layers:
     intermediate: "{base_path}/data/processed/population_data/population_2021_intermediate_layer.tif"
     final: "{base_path}/data/processed/population_data/population_2021_layer.tif"
 
-nuts_data: "{base_path}/data/raw/EU_NUTS/NUTS_RG_01M_2021_3035.shp"
+nuts_data:
+  source: "{base_path}/data/raw/EU_NUTS/NUTS_RG_01M_2021_3035.shp"
+  final: "{base_path}/data/processed/nuts_data/NUTS_austria_31287.shp"
 
 naturraumregionen: "{base_path}/data/raw/OGD_Naturraumregionen/oekoregionen/Oekoregionen.shp"
 
