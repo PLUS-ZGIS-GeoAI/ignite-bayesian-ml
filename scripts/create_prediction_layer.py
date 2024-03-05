@@ -46,13 +46,12 @@ def add_ffmc_layer(features_df: pd.DataFrame, static_value=None) -> pd.DataFrame
 def preprocess_data(path_to_preprocessor: str, features_df: pd.DataFrame):
     """apply preprocessing steps as done in model training"""
 
-    training_order_columns = ['ffmc', 'farmyard_density', 'hikingtrail_density', 'forestroad_density',
-                              'railway_density', 'elevation', 'slope', 'population_density']
-
     features_df["aspect_encoded"] = features_df["aspect"].apply(
         convert_aspect_to_cardinal_direction)
-    #features_df["forest_type"].replace(-1, 6, inplace=True)
     features_df["forest_type"] = features_df["forest_type"].astype(int)
+
+    training_order_columns = ['ffmc', 'farmyard_density', 'hikingtrail_density', 'forestroad_density',
+                              'railway_density', 'elevation', 'slope', 'population_density']
     features_df_reordered = features_df[training_order_columns]
 
     preprocessor = joblib.load(path_to_preprocessor)
@@ -156,7 +155,7 @@ if __name__ == "__main__":
 
     features_df = load_static_layers_into_df(feature_layers)
     
-    features_df = add_ffmc_layer(features_df, 65)
+    features_df = add_ffmc_layer(features_df, 85)
     
     ref_grid_ids_aoi = extract_ref_grid_ids_from_nuts_unit(
         paths["nuts_data"]["final"], paths["reference_grid"]["raster"], nuts_code)
