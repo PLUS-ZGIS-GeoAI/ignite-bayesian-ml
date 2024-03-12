@@ -2,14 +2,12 @@
 
 #### TODOs
 
-- Last thoughts:
-
-The target is to communicate uncertainty for transparency:
--	How can we communicate uncertainty in an understandable way?
--	How categorize p-values in danger classes?
--	How to categorize hdi into uncertainty classes?
-
-But also:
-- I should log transform some features (e.g. poulation) before training
+Last status
+- I revised the methodology 
+- I changed the categorization of features (to make it comparable to IDFS paper Müller, Vacik)
+- This new categorization method is implemented in uncertainty_quantification_v2
+- Next things to do:
+    - Writing sections of paper. (Codewise, everything I need for now is finished)
+    - Paper methodology model, model evaluation and coefficients analysis!!!! (highest priority before touching the code again)
 
 
