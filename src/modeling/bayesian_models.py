@@ -2,6 +2,88 @@ import pandas as pd
 import pymc as pm
 import numpy as np
 
+def create_model_ffmc_adjustment_aspect(X: pd.DataFrame,
+                                        y: pd.Series,
+                                        coords: dict) -> pm.Model:
+
+    with pm.Model(coords=coords) as model:  # type: ignore
+
+        aspect_groups_idx = pm.MutableData("aspect_groups_idx", X["aspect_categorized"])
+        ffmc = pm.MutableData('ffmc', X.ffmc)
+        fire_labels = pm.MutableData('fire', y)
+
+        # Hyperpriors of features
+        mu_b1 = pm.Cauchy("mu_b1", 0, 1) 
+        sigma_b1 = pm.Exponential("sigma_b1", 1)
+
+        # specify priors for the features
+        intercept = pm.Cauchy('intercept', 0, 1)
+        beta_ffmc = pm.Cauchy('beta_ffmc', mu_b1, sigma_b1, dims=("aspect_groups"))
+        error_var = pm.Cauchy("error_beta", 0, 1)
+
+        mean = intercept + beta_ffmc[aspect_groups_idx] * ffmc + error_var
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
+
+        y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
+
+        return model
+    
+def create_model_ffmc_adjustment_foresttype(X: pd.DataFrame,
+                                            y: pd.Series,
+                                            coords: dict) -> pm.Model:
+
+    with pm.Model(coords=coords) as model:  # type: ignore
+
+        foersttype_groups_idx = pm.MutableData("foersttype_groups_idx", X["foresttype"])
+        ffmc = pm.MutableData('ffmc', X.ffmc)
+        fire_labels = pm.MutableData('fire', y)
+
+        # Hyperpriors of features
+        mu_b1 = pm.Cauchy("mu_b1", 0, 1) 
+        sigma_b1 = pm.Exponential("sigma_b1", 1)
+
+        # specify priors for the features
+        intercept = pm.Cauchy('intercept', 0, 1)
+        beta_ffmc = pm.Cauchy('beta_ffmc', mu_b1, sigma_b1, dims=("foresttype_groups"))
+        error_var = pm.Cauchy("error_beta", 0, 1)
+
+        mean = intercept + beta_ffmc[foersttype_groups_idx] * ffmc + error_var
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
+
+        y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
+
+        return model
+    
+def create_model_ffmc_adjustment_canopy_cover(X: pd.DataFrame,
+                                              y: pd.Series,
+                                              coords: dict) -> pm.Model:
+
+    with pm.Model(coords=coords) as model:  # type: ignore
+
+        canopy_cover_groups_idx = pm.MutableData("canopy_cover_groups_idx", X["canopy_cover_categorized"])
+        ffmc = pm.MutableData('ffmc', X.ffmc)
+        fire_labels = pm.MutableData('fire', y)
+
+        # Hyperpriors of features
+        mu_b1 = pm.Cauchy("mu_b1", 0, 1) 
+        sigma_b1 = pm.Exponential("sigma_b1", 1)
+
+        # specify priors for the features
+        intercept = pm.Cauchy('intercept', 0, 1)
+        beta_ffmc = pm.Cauchy('beta_ffmc', mu_b1, sigma_b1, dims=("canopy_cover_groups"))
+        error_var = pm.Cauchy("error_beta", 0, 1)
+
+        mean = intercept + beta_ffmc[canopy_cover_groups_idx] * ffmc + error_var
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
+
+        y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
+
+        return model
+
+
+
+
+
 
 def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
                                                    y: pd.Series,
@@ -19,32 +101,27 @@ def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
 
     with pm.Model(coords=coords) as model:  # type: ignore
 
-        aspect_groups_idx = pm.MutableData("aspect_groups_idx", X["aspect"])
-        treetype_groups_idx = pm.MutableData(
-            "foresttype_groups_idx", X["foresttype"])
-
+        aspect_groups_idx = pm.MutableData("aspect_groups_idx", X["aspect_categorized"])
+        foresttype_groups_idx = pm.MutableData("foresttype_groups_idx", X["foresttype"])
+        canopy_cover_groups_idx = pm.MutableData("canopy_cover_groups_idx", X["canopy_cover_categorized"])
         ffmc = pm.MutableData('ffmc', X.ffmc)
         fire_labels = pm.MutableData('fire', y)
 
         # Hyperpriors of features
-        mu_b1, sigma_b1 = pm.Cauchy(
-            "mu_b1", mu=0.0, sigma=1.0), pm.Exponential("sigma_b1", 1)
+        mu_b1 = pm.Cauchy("mu_b1", 0, 1) 
+        sigma_b1 = pm.Exponential("sigma_b1", 1)
 
         # specify priors for the features
         intercept = pm.Cauchy('intercept', 0, 1)
         beta_ffmc = pm.Cauchy('beta_ffmc', mu_b1, sigma_b1,
-                              dims=("aspect_groups", "foresttype_groups"))
+                              dims=("aspect_groups", "foresttype_groups", "canopy_cover_groups"))
         error_var = pm.Cauchy("error_beta", 0, 1)
 
-        # Transform random variables into vector of probabilities p(y_i=1)
-        # according to logistic regression model specification.
         mean = intercept + \
-            beta_ffmc[aspect_groups_idx, treetype_groups_idx] * ffmc + \
+            beta_ffmc[aspect_groups_idx, foresttype_groups_idx, canopy_cover_groups_idx] * ffmc + \
             error_var
         p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
 
-        # Bernoulli random vector with probability of fire = 1
-        # given by sigmoid function and actual data as observed
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model

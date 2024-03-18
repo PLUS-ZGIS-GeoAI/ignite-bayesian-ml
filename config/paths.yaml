@@ -12,6 +12,9 @@ forest_type:
   source: "{base_path}/data/raw/BWF_forest_type/forest_type_merged.tif"
   final: "{base_path}/data/processed/forest_type/forest_type_layer.tif"
 
+canopy_cover:
+  final: "{base_path}/data/processed/canopy_cover/canopy_cover_100m.tif"
+
 roads:
   source: "{base_path}/data/raw/OSM_austria/austria-latest-free/gis_osm_roads_free_1.shp"
   forestroads:

@@ -11,3 +11,7 @@ Last status
     - Paper methodology model, model evaluation and coefficients analysis!!!! (highest priority before touching the code again)
 
 
+3.18
+- TODO integrate canopy cover layer scripts into this repo
+
+

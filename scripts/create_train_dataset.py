@@ -115,7 +115,8 @@ def main():
         ("elevation", paths["topographical_layers"]["elevation"]["final"]),
         ("slope", paths["topographical_layers"]["slope"]["final"]),
         ("aspect", paths["topographical_layers"]["aspect"]["final"]),
-        ("foresttype", paths["forest_type"]["final"])
+        ("foresttype", paths["forest_type"]["final"]),
+        ("canopy_cover", paths["canopy_cover"]["final"])
     ]
 
     train_data = add_static_features(event_data, feature_info)

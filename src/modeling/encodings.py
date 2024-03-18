@@ -102,6 +102,55 @@ def convert_population_to_classes(population: float) -> int:
         return 5
     else: 
         return -1
+    
+
+
+def convert_canopy_cover_to_classes(cc: float) -> int:
+    """categorization of canopy cover into classes based on boku document for ffmc overprint
+
+    Args:
+         cc (float): canopy cover in %
+
+    Returns:
+        int: canopy cover encoded
+    """
+
+    if (cc <= 20):
+        return 0
+    elif (cc > 20) & (cc <= 40):
+        return 1
+    elif (cc > 40) & (cc <= 60):
+        return 2
+    elif (cc > 60) & (cc <= 80):
+        return 3
+    elif (cc > 80):
+        return 4
+    else: 
+        return -1
+    
+
+def convert_ffmc_to_classes(cc: float) -> int:
+    """categorization of ffmc into classes based on boku document for ffmc overprint
+
+    Args:
+         ffmc (float): fine fuel moisture code
+
+    Returns:
+        int: ffmc encoded
+    """
+
+    if (cc < 78):
+        return 0
+    elif (cc >= 78) & (cc < 87):
+        return 1
+    elif (cc >= 87) & (cc < 91):
+        return 2
+    elif (cc >= 91) & (cc < 93):
+        return 3
+    elif (cc >= 93):
+        return 4
+    else: 
+        return -1
 
 
 def apply_encoding(original_value: str, mapping: dict):
