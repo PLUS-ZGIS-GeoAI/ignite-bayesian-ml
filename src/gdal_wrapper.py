@@ -46,6 +46,8 @@ def gdal_align_and_resample(path_to_input_raster: str, path_to_output_raster: st
 
     gdal.Warp(path_to_output_raster,
               path_to_input_raster, options=warp_options)
+    
+    ref_df = None
 
 
 def gdal_rasterize_vector_layer(path_to_vector_file: str, path_to_output: str, path_to_ref_raster: str, layer_name: str, col_name: str) -> None:
@@ -95,3 +97,102 @@ def gdal_create_geotiff_from_nc(data: np.array, lon: np.array, lat: np.array, pa
 
     out_band.FlushCache()
     out_dataset.FlushCache()
+
+
+def gdal_resample(path_to_input_raster: str, 
+                  path_to_output_raster: str, 
+                  target_resolution: float, 
+                  resample_alg: str, 
+                  nodata_value: Optional[float] = None) -> None:
+    """
+    Resamples a raster from the original resolution into the target resolution using GDAL.
+
+    Args:
+        path_to_input_raster (str): Path to the input raster file.
+        path_to_output_raster (str): Path to save the output resampled raster.
+        target_resolution (float): Target resolution in the same units as the input raster.
+        resample_alg (str): Resampling algorithm to be used (e.g., 'nearest', 'bilinear', 'cubic', etc.).
+        nodata_value (Optional[float]): Optional nodata value to be set in the output raster.
+
+    Returns:
+        None
+    """
+
+    # Open the input raster dataset
+    input_ds = gdal.Open(path_to_input_raster)
+    if input_ds is None:
+        raise FileNotFoundError(f"Failed to open input raster: {path_to_input_raster}")
+
+    # Get the input raster's geotransform, spatial reference, and shape
+    geo_transform = input_ds.GetGeoTransform()
+    spatial_ref = input_ds.GetProjectionRef()
+    shape = (input_ds.RasterYSize, input_ds.RasterXSize)
+
+    # Calculate the new geotransform based on the target resolution
+    new_geo_transform = list(geo_transform)
+    new_geo_transform[1] = target_resolution
+    new_geo_transform[5] = -1 * target_resolution  # negative because of Y-axis inversion
+
+    # Define warp options
+    warp_options = gdal.WarpOptions(
+        format='GTiff',
+        xRes=target_resolution,
+        yRes=target_resolution,
+        resampleAlg=resample_alg,
+        dstSRS=spatial_ref,
+        dstNodata=nodata_value,
+        outputBounds=(geo_transform[0], geo_transform[3] + shape[1] * geo_transform[5],
+                      geo_transform[0] + shape[0] * geo_transform[1], geo_transform[3])
+    )
+
+    # Perform the resampling
+    gdal.Warp(path_to_output_raster, input_ds, options=warp_options)
+
+    # Close the input dataset
+    input_ds = None
+
+
+def set_zeros_to_nan(path_to_input_raster: str, path_to_output_raster: str) -> None:
+    """
+    Loads an image and sets all 0 values to NaN values.
+
+    Args:
+        path_to_input_raster (str): Path to the input raster file.
+        path_to_output_raster (str): Path to save the output raster file.
+
+    Returns:
+        None
+    """
+
+    # Open the input raster dataset
+    input_ds = gdal.Open(path_to_input_raster)
+    if input_ds is None:
+        raise FileNotFoundError(f"Failed to open input raster: {path_to_input_raster}")
+
+    # Get the raster's geotransform, spatial reference, and shape
+    geo_transform = input_ds.GetGeoTransform()
+    spatial_ref = input_ds.GetProjectionRef()
+    shape = (input_ds.RasterYSize, input_ds.RasterXSize)
+
+    # Read the raster data
+    band = input_ds.GetRasterBand(1)
+    data = band.ReadAsArray()
+
+    # Get the nodata value from the raster metadata
+    nodata_value = band.GetNoDataValue()
+
+    # Convert 0 values to NaN values from the raster's nodata value
+    data[data == 0] = nodata_value
+
+    # Create a new raster file with NaN values
+    driver = gdal.GetDriverByName('GTiff')
+    output_ds = driver.Create(path_to_output_raster, shape[1], shape[0], 1, band.DataType)
+    output_ds.SetGeoTransform(geo_transform)
+    output_ds.SetProjection(spatial_ref)
+    output_band = output_ds.GetRasterBand(1)
+    output_band.SetNoDataValue(nodata_value)  # Set nodata value for output raster
+    output_band.WriteArray(data)
+
+    # Close the datasets
+    input_ds = None
+    output_ds = None

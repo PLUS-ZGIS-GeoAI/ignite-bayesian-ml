@@ -80,23 +80,10 @@ def create_model_ffmc_adjustment_canopy_cover(X: pd.DataFrame,
 
         return model
 
-
-
-
-
-
-def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
-                                                   y: pd.Series,
-                                                   coords: dict) -> pm.Model:
-    """Generates a probabilitstic bayesian logistic regression model, specifically for the FFMC adjustment use-case
-
-    Args:
-        X (pd.DataFrame): features
-        y (pd.Series): labels
-        coords (dict): contains unique values of grouping variables (values) and key name is used to access to values 
-
-    Returns:
-        pm.Model: bayesian model, which can be used for analysis and prediction
+def create_model_ffmc_adjustment_all(X: pd.DataFrame,
+                                     y: pd.Series,
+                                     coords: dict) -> pm.Model:
+    """
     """
 
     with pm.Model(coords=coords) as model:  # type: ignore
@@ -125,7 +112,6 @@ def create_blr_partial_pooling_for_ffmc_adjustment(X: pd.DataFrame,
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model
-
 
 def create_st_blr(X: pd.DataFrame,
                   y: pd.Series,
