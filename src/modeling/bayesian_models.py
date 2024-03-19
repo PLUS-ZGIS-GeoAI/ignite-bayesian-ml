@@ -2,6 +2,10 @@ import pandas as pd
 import pymc as pm
 import numpy as np
 
+
+
+# For FFMC adjustment. Grouping based on CC, EXP & FT
+
 def create_model_ffmc_adjustment_aspect(X: pd.DataFrame,
                                         y: pd.Series,
                                         coords: dict) -> pm.Model:
@@ -112,6 +116,76 @@ def create_model_ffmc_adjustment_all(X: pd.DataFrame,
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model
+
+# For FFMC adjustment. Including CC, EXP & FT as covariates. Grouping based on FFMC
+
+def create_model_ffmc_adjustment_exp1(X: pd.DataFrame,
+                                      y: pd.Series, 
+                                      coords: dict) -> pm.Model:
+
+    with pm.Model(coords = coords) as model:  # type: ignore
+
+        aspect = pm.MutableData("aspect", X["aspect_categorized"])
+        foresttype = pm.MutableData("foresttype", X["foresttype"])
+        canopy_cover = pm.MutableData("canopy_cover", X["canopy_cover_categorized"])
+        ffmc = pm.MutableData('ffmc', X.ffmc)
+        fire_labels = pm.MutableData('fire', y)
+
+        # specify priors for the features
+        intercept = pm.Cauchy('intercept', 0, 1)
+        beta_ffmc = pm.Cauchy('beta_ffmc', 0, 1)
+        beta_aspect = pm.Cauchy('beta_aspect', 0, 1, dims=("aspect_groups"))
+        beta_foresttype = pm.Cauchy('beta_foresttype', 0, 1, dims=("foresttype_groups"))
+        beta_canopy_cover = pm.Cauchy('beta_canopy_cover', 0, 1, dims=("canopy_cover_groups"))
+        error_var = pm.Cauchy("error_beta", 0, 1)
+
+        mean = intercept + \
+            beta_aspect[aspect] + \
+            beta_foresttype[foresttype] + \
+            beta_canopy_cover[canopy_cover] + \
+            error_var
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
+
+        y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
+
+        return model
+
+def create_model_ffmc_adjustment_exp2(X: pd.DataFrame,
+                                      y: pd.Series, 
+                                      coords: dict) -> pm.Model:
+
+    with pm.Model(coords = coords) as model:  # type: ignore
+
+        aspect = pm.MutableData("aspect", X["aspect_categorized"])
+        foresttype = pm.MutableData("foresttype", X["foresttype"])
+        canopy_cover = pm.MutableData("canopy_cover", X["canopy_cover_categorized"])
+        ffmc_groups = pm.MutableData("ffmc_groups", X["ffmc_groups"])
+        ffmc = pm.MutableData('ffmc', X.ffmc)
+        fire_labels = pm.MutableData('fire', y)
+
+        # specify priors for the features
+        intercept = pm.Cauchy('intercept', 0, 10)
+        beta_ffmc = pm.Cauchy('beta_ffmc', 0, 10)
+        beta_aspect = pm.Cauchy('beta_aspect', 0, 10, dims=("aspect_groups", "ffmc_groups"))
+        beta_foresttype = pm.Cauchy('beta_foresttype', 0, 10, dims=("foresttype_groups", "ffmc_groups"))
+        beta_canopy_cover = pm.Cauchy('beta_canopy_cover', 0, 10, dims=("canopy_cover_groups", "ffmc_groups"))
+        error_var = pm.Cauchy("error_beta", 0, 1)
+
+        mean = intercept + \
+            beta_ffmc * ffmc + \
+            beta_aspect[aspect, ffmc_groups] + \
+            beta_foresttype[foresttype, ffmc_groups] + \
+            beta_canopy_cover[canopy_cover, ffmc_groups] + \
+            error_var
+        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
+
+        y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
+
+        return model
+
+
+
+# For uncertainty quantification
 
 def create_st_blr(X: pd.DataFrame,
                   y: pd.Series,
