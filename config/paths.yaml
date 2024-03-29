@@ -77,3 +77,8 @@ ffmc:
 
 ffmc_events:
   source: "{base_path}/data/raw/BOKU_MET_ffmc/fire_data_ffmc_fwi_2003t2021.csv"
+
+ffmc_adjustment_eval_events:
+  source: "{base_path}/data/raw/BOKU_eval_data/231018_wbs_ab1ha_13bis23_ffmc.csv"
+
+

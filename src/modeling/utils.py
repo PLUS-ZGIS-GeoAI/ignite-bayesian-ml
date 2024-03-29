@@ -1,5 +1,5 @@
 import pandas as pd
-
+import cloudpickle
 
 def temporal_train_test_split(train_data: pd.DataFrame, date_col: str, train_size: float) -> tuple:
     """function splits dataframe into train and test dataframe. Split criteria is the date. Newer samples are contained in the testset. Older samples in the training set.
@@ -16,3 +16,8 @@ def temporal_train_test_split(train_data: pd.DataFrame, date_col: str, train_siz
     train_df = train_data.iloc[:split_index]
     test_df = train_data.iloc[split_index:]
     return train_df, test_df
+
+def save_model(path_to_model: str, model, idata) -> None:
+    dict_to_save = {'model': model,'idata': idata}
+    with open(path_to_model , 'wb') as buff:
+        cloudpickle.dump(dict_to_save, buff)

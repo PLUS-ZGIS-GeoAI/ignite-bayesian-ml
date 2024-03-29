@@ -134,12 +134,14 @@ def create_model_ffmc_adjustment_exp1(X: pd.DataFrame,
         # specify priors for the features
         intercept = pm.Cauchy('intercept', 0, 1)
         beta_ffmc = pm.Cauchy('beta_ffmc', 0, 1)
+
         beta_aspect = pm.Cauchy('beta_aspect', 0, 1, dims=("aspect_groups"))
         beta_foresttype = pm.Cauchy('beta_foresttype', 0, 1, dims=("foresttype_groups"))
         beta_canopy_cover = pm.Cauchy('beta_canopy_cover', 0, 1, dims=("canopy_cover_groups"))
         error_var = pm.Cauchy("error_beta", 0, 1)
 
         mean = intercept + \
+            beta_ffmc * ffmc + \
             beta_aspect[aspect] + \
             beta_foresttype[foresttype] + \
             beta_canopy_cover[canopy_cover] + \
@@ -159,23 +161,28 @@ def create_model_ffmc_adjustment_exp2(X: pd.DataFrame,
         aspect = pm.MutableData("aspect", X["aspect_categorized"])
         foresttype = pm.MutableData("foresttype", X["foresttype"])
         canopy_cover = pm.MutableData("canopy_cover", X["canopy_cover_categorized"])
-        ffmc_groups = pm.MutableData("ffmc_groups", X["ffmc_groups"])
         ffmc = pm.MutableData('ffmc', X.ffmc)
         fire_labels = pm.MutableData('fire', y)
 
+        mu_asp, sigma_asp = pm.Cauchy(
+            "mu_b1", 0.0, 1.0), pm.Exponential("sigma_b1", 1)
+        mu_ft, sigma_ft = pm.Cauchy(
+            "mu_b2", 0.0, 1.0), pm.Exponential("sigma_b2", 1)
+        mu_cc, sigma_cc = pm.Cauchy(
+            "mu_b3", 0.0, 1.0), pm.Exponential("sigma_b3", 1)
+
         # specify priors for the features
-        intercept = pm.Cauchy('intercept', 0, 10)
-        beta_ffmc = pm.Cauchy('beta_ffmc', 0, 10)
-        beta_aspect = pm.Cauchy('beta_aspect', 0, 10, dims=("aspect_groups", "ffmc_groups"))
-        beta_foresttype = pm.Cauchy('beta_foresttype', 0, 10, dims=("foresttype_groups", "ffmc_groups"))
-        beta_canopy_cover = pm.Cauchy('beta_canopy_cover', 0, 10, dims=("canopy_cover_groups", "ffmc_groups"))
+        intercept = pm.Cauchy('intercept', 0, 1)
+        beta_aspect = pm.Cauchy('beta_aspect', mu_asp, sigma_asp, dims=("aspect_groups"))
+        beta_foresttype = pm.Cauchy('beta_foresttype', mu_ft, sigma_ft, dims=("foresttype_groups"))
+        beta_canopy_cover = pm.Cauchy('beta_canopy_cover', mu_cc, sigma_cc, dims=("canopy_cover_groups"))
         error_var = pm.Cauchy("error_beta", 0, 1)
 
         mean = intercept + \
-            beta_ffmc * ffmc + \
-            beta_aspect[aspect, ffmc_groups] + \
-            beta_foresttype[foresttype, ffmc_groups] + \
-            beta_canopy_cover[canopy_cover, ffmc_groups] + \
+            ffmc + \
+            beta_aspect[aspect] + \
+            beta_foresttype[foresttype] + \
+            beta_canopy_cover[canopy_cover] + \
             error_var
         p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
 
