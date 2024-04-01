@@ -3,7 +3,6 @@ import pymc as pm
 import numpy as np
 
 
-
 # For FFMC adjustment. Grouping based on CC, EXP & FT
 
 def create_model_ffmc_adjustment_aspect(X: pd.DataFrame,
@@ -84,38 +83,6 @@ def create_model_ffmc_adjustment_canopy_cover(X: pd.DataFrame,
 
         return model
 
-def create_model_ffmc_adjustment_all(X: pd.DataFrame,
-                                     y: pd.Series,
-                                     coords: dict) -> pm.Model:
-    """
-    """
-
-    with pm.Model(coords=coords) as model:  # type: ignore
-
-        aspect_groups_idx = pm.MutableData("aspect_groups_idx", X["aspect_categorized"])
-        foresttype_groups_idx = pm.MutableData("foresttype_groups_idx", X["foresttype"])
-        canopy_cover_groups_idx = pm.MutableData("canopy_cover_groups_idx", X["canopy_cover_categorized"])
-        ffmc = pm.MutableData('ffmc', X.ffmc)
-        fire_labels = pm.MutableData('fire', y)
-
-        # Hyperpriors of features
-        mu_b1 = pm.Cauchy("mu_b1", 0, 1) 
-        sigma_b1 = pm.Exponential("sigma_b1", 1)
-
-        # specify priors for the features
-        intercept = pm.Cauchy('intercept', 0, 1)
-        beta_ffmc = pm.Cauchy('beta_ffmc', mu_b1, sigma_b1,
-                              dims=("aspect_groups", "foresttype_groups", "canopy_cover_groups"))
-        error_var = pm.Cauchy("error_beta", 0, 1)
-
-        mean = intercept + \
-            beta_ffmc[aspect_groups_idx, foresttype_groups_idx, canopy_cover_groups_idx] * ffmc + \
-            error_var
-        p = pm.Deterministic('p', pm.math.invlogit(mean))  # type: ignore
-
-        y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
-
-        return model
 
 # For FFMC adjustment. Including CC, EXP & FT as covariates. Grouping based on FFMC
 
@@ -189,7 +156,6 @@ def create_model_ffmc_adjustment_exp2(X: pd.DataFrame,
         y_pred = pm.Bernoulli("y_pred", p, observed=fire_labels)
 
         return model
-
 
 
 # For uncertainty quantification

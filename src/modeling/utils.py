@@ -21,3 +21,10 @@ def save_model(path_to_model: str, model, idata) -> None:
     dict_to_save = {'model': model,'idata': idata}
     with open(path_to_model , 'wb') as buff:
         cloudpickle.dump(dict_to_save, buff)
+
+def load_model(path_to_file):
+    with open(path_to_file , 'rb') as buff:
+        model_dict = cloudpickle.load(buff)
+    idata = model_dict['idata']
+    model = model_dict['model']
+    return model, idata
