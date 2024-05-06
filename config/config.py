@@ -6,10 +6,11 @@ GEOSPHERE_INCA_TS_URL = 'https://dataset.api.hub.geosphere.at/v1/timeseries/hist
 PROJECT_EPSG = "EPSG:31287"
 
 # Path to project directory
-BASE_PATH = "C:/Users/b1105474/OneDrive - Universität Salzburg/PR_IGNITE/IGNITE_david"
+#BASE_PATH = "C:/Users/b1105474/OneDrive - Universität Salzburg/PR_IGNITE/IGNITE_david"
+BASE_PATH = "/home/david/Documents/Projects/ignite-wildfire-ignition-prediction"
 
 # Path to yaml file where paths are specified
-PATH_TO_PATH_CONFIG_FILE = "C:/Users/b1105474/OneDrive - Universität Salzburg/Gitlab_Projects//ignite-wildfire-ignition-prediction/config/paths.yaml"
+PATH_TO_PATH_CONFIG_FILE = f"{BASE_PATH}/config/paths.yaml"
 
 # TODO exchange with real BBOX (currently this is BBOX of upper Austria)
 # Bounding Box for Austria (e.g. used for ffmc layer creation)
