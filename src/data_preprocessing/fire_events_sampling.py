@@ -7,7 +7,9 @@ import calendar
 import random
 
 
-def sample_points(raster_path: str, num_samples: int, random_seed: int) -> gpd.GeoDataFrame:
+def sample_points(
+    raster_path: str, num_samples: int, random_seed: int
+) -> gpd.GeoDataFrame:
     """
     Sample random points inside a raster where data is present.
     Returns a GeoDataFrame of sampled points with the same CRS as the raster.
@@ -15,8 +17,12 @@ def sample_points(raster_path: str, num_samples: int, random_seed: int) -> gpd.G
     ds = gdal.Open(raster_path)
     crs = ds.GetProjection()
     geotransform = ds.GetGeoTransform()
-    x_origin, y_origin, pixel_width, pixel_height = geotransform[
-        0], geotransform[3], geotransform[1], geotransform[5]
+    x_origin, y_origin, pixel_width, pixel_height = (
+        geotransform[0],
+        geotransform[3],
+        geotransform[1],
+        geotransform[5],
+    )
 
     band = ds.GetRasterBand(1)
     data = band.ReadAsArray()
@@ -38,13 +44,14 @@ def sample_categories(categories, probabilities, num_samples: int, random_seed: 
     """
     Sample a given number of categories based on a discrete distribution specified by "probabilities"
     """
-    cat_dist = stats.rv_discrete(
-        values=(categories, probabilities), seed=random_seed)
+    cat_dist = stats.rv_discrete(values=(categories, probabilities), seed=random_seed)
     samples = cat_dist.rvs(size=num_samples)
     return samples
 
 
-def sample_random_date_given_year_and_month(month: int, year: int, random_state: int) -> str:
+def sample_random_date_given_year_and_month(
+    month: int, year: int, random_state: int
+) -> str:
     """Generate a random date given a year and a month"""
     np.random.seed(random_state)
     num_days = calendar.monthrange(year, month)[1]
