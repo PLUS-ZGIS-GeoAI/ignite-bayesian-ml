@@ -184,8 +184,6 @@ def plot_performance_over_seasons(preds_models: list, X_test, y_test, path_to_pl
 
 
 
-
-
 # TODO Score against HDI width
 
 # TODO HDI width per season and per year for each model (2 plots)
