@@ -688,24 +688,24 @@ def create_bnn(X: np.array, y: np.array, random_seed: int = 42):
         ann_output = pm.Data("ann_output", y, mutable=True, dims="obs_id")
 
         # Weights from input to hidden layer
-        weights_in_1 = pm.Normal(
-            "w_in_1", 0, sigma=1, initval=init_1, dims=("train_cols", "hidden_layer_1")
+        weights_in_1 = pm.Cauchy(
+            "w_in_1", 0, 1, initval=init_1, dims=("train_cols", "hidden_layer_1")
         )
 
         # Weights from 1st to 2nd layer
-        weights_1_2 = pm.Normal(
+        weights_1_2 = pm.Cauchy(
             "w_1_2",
             0,
-            sigma=1,
+            1,
             initval=init_2,
             dims=("hidden_layer_1", "hidden_layer_2"),
         )
 
         # Weights from 2nd to 3rd layer
-        weights_2_3 = pm.Normal(
+        weights_2_3 = pm.Cauchy(
             "w_2_3",
             0,
-            sigma=1,
+            1,
             initval=init_3,
             dims=("hidden_layer_2", "hidden_layer_3"),
         )
@@ -718,7 +718,7 @@ def create_bnn(X: np.array, y: np.array, random_seed: int = 42):
         # Build neural-network using tanh activation function
         act_1 = pm.math.tanh(pm.math.dot(ann_input, weights_in_1))
         act_2 = pm.math.tanh(pm.math.dot(act_1, weights_1_2))
-        act_3 = pm.math.tanh(pm.math.dot(act_1, weights_2_3))
+        act_3 = pm.math.tanh(pm.math.dot(act_2, weights_2_3))
         act_out = pm.math.sigmoid(pm.math.dot(act_3, weights_3_out))
 
         act_out = pm.Deterministic("p", act_out)
