@@ -1,4 +1,3 @@
-
 def convert_aspect_to_cardinal_direction(aspect: float) -> int:
     """converts aspect degree values to cardinal direction classes
 
@@ -26,7 +25,7 @@ def convert_aspect_to_cardinal_direction(aspect: float) -> int:
         return 7  # NW
     else:
         return -1
-    
+
 
 def convert_slope_to_classes(slope: float) -> int:
     """categorization of slope into classes after Müller & Vacik (2020)
@@ -38,7 +37,7 @@ def convert_slope_to_classes(slope: float) -> int:
         int: slope encoded
     """
 
-    if (slope < 10):
+    if slope < 10:
         return 0
     elif (slope >= 10) & (slope < 20):
         return 1
@@ -46,11 +45,11 @@ def convert_slope_to_classes(slope: float) -> int:
         return 2
     elif (slope >= 30) & (slope < 40):
         return 3
-    elif (slope >= 40):
+    elif slope >= 40:
         return 4
-    else: 
+    else:
         return -1
-    
+
 
 def convert_elevation_to_classes(elevation: float) -> int:
     """categorization of elevation into classes after Müller & Vacik (2020)
@@ -62,7 +61,7 @@ def convert_elevation_to_classes(elevation: float) -> int:
         int: elevation encoded
     """
 
-    if (elevation < 500):
+    if elevation < 500:
         return 0
     elif (elevation >= 500) & (elevation < 800):
         return 1
@@ -72,7 +71,7 @@ def convert_elevation_to_classes(elevation: float) -> int:
         return 3
     elif (elevation >= 1800) & (elevation < 2200):
         return 4
-    elif (elevation >= 2200):
+    elif elevation >= 2200:
         return 5
     else:
         return -1
@@ -88,7 +87,7 @@ def convert_population_to_classes(population: float) -> int:
         int: population encoded
     """
 
-    if (population == 0):
+    if population == 0:
         return 0
     elif (population > 0) & (population <= 50):
         return 1
@@ -98,11 +97,10 @@ def convert_population_to_classes(population: float) -> int:
         return 3
     elif (population > 500) & (population <= 1000):
         return 4
-    elif (population > 1000):
+    elif population > 1000:
         return 5
-    else: 
+    else:
         return -1
-    
 
 
 def convert_canopy_cover_to_classes(cc: float) -> int:
@@ -115,7 +113,7 @@ def convert_canopy_cover_to_classes(cc: float) -> int:
         int: canopy cover encoded
     """
 
-    if (cc <= 20):
+    if cc <= 20:
         return 0
     elif (cc > 20) & (cc <= 40):
         return 1
@@ -123,11 +121,11 @@ def convert_canopy_cover_to_classes(cc: float) -> int:
         return 2
     elif (cc > 60) & (cc <= 80):
         return 3
-    elif (cc > 80):
+    elif cc > 80:
         return 4
-    else: 
+    else:
         return -1
-    
+
 
 def convert_ffmc_to_classes(cc: float) -> int:
     """categorization of ffmc into classes based on boku document for ffmc overprint
@@ -139,7 +137,7 @@ def convert_ffmc_to_classes(cc: float) -> int:
         int: ffmc encoded
     """
 
-    if (cc < 78):
+    if cc < 78:
         return 0
     elif (cc >= 78) & (cc < 87):
         return 1
@@ -147,9 +145,9 @@ def convert_ffmc_to_classes(cc: float) -> int:
         return 2
     elif (cc >= 91) & (cc < 93):
         return 3
-    elif (cc >= 93):
+    elif cc >= 93:
         return 4
-    else: 
+    else:
         return -1
 
 
@@ -162,6 +160,7 @@ def apply_encoding(original_value: str, mapping: dict):
     """
 
     return mapping[original_value]
+
 
 def map_to_binary(x):
     return 1 if x > 0 else 0
@@ -177,5 +176,5 @@ naturraumregionen_encoding = {
     "Klagenfurter Becken": 6,
     "Südalpen": 7,
     "Zentralalpen - zentraler Teil": 8,
-    "Mittlere und westliche Nordalpen": 9
+    "Mittlere und westliche Nordalpen": 9,
 }
