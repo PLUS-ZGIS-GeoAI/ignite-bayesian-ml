@@ -19,6 +19,7 @@ machine learning models and uncertainty analysis.
 - **`/scripts`**: Folder contains python scripts to create input layers for features covering whole Austria. Those layers can be used for creating a training dataset and to run inference on whole of Austria.  
 - **`/data`**: Includes data needed to conduct study (please reach out to contact)
 - **`/notebooks`**: This folder contains two groups of notebooks, notebooks for some special data-preprocessing and notebooks for bayesian model training and model execution. The notebook uncertainty_quantification\uncertainty_quantification_study.ipynb contains all steps of the study in focus. 
+- **`/config`**: Contains configuration options and paths to source data. 
 
 
 ## Setup and Installation
