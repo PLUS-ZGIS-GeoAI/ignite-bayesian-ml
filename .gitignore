@@ -1,6 +1,5 @@
 __pycache__
 .vscode/
-models
 data
 results
 access_tokens.txt
